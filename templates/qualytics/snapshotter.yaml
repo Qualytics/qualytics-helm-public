@@ -13,8 +13,6 @@ spec:
   storageClassName: gcp-fast
   {{- else if ( eq .Values.global.platform "azure" ) }}
   storageClassName: azure-fast
-  {{- else }}
-  storageClassName: local
   {{- end }}
   resources:
     requests:

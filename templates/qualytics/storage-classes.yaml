@@ -68,17 +68,4 @@ parameters:
 volumeBindingMode: WaitForFirstConsumer
 reclaimPolicy: Retain
 allowVolumeExpansion: true
-
-{{- else }}
----
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: local
-  labels:
-    environment: qualytics
-provisioner: kubernetes.io/no-provisioner
-volumeBindingMode: WaitForFirstConsumer
-reclaimPolicy: Retain
-
 {{- end }}

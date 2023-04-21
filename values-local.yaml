@@ -37,9 +37,9 @@ cert-manager:
 # the entire app
 global:
   platform: "local"
-  tenant: "changeme"
+  tenant: "develop"
   dnsRecord: "{{ .Values.global.tenant }}.qualytics.io"
-  auth0_domain: "auth.qualytics.io"
+  auth0_domain: "qualytics-dev.us.auth0.com"
   imageUrls:
     firewallImageUrl: "artifactory.qualytics.io:443/docker/firewall-prod"
     hubImageUrl: "artifactory.qualytics.io:443/docker/hub-prod"
@@ -61,11 +61,11 @@ firewall:
   partitionSize: 10000000
   threadPoolParallelism: -1
   driver:
-    cores: 7
-    coreLimit: "7500m"
-    memory: "11500m"
+    cores: 1
+    coreLimit: "1500m"
+    memory: "2000m"
   dynamicAllocation:
-    enabled: true
+    enabled: false
     initialExecutors: 0
     minExecutors: 0
     maxExecutors: 10
@@ -73,9 +73,9 @@ firewall:
     ## Note that if dynamic allocation is enabled, the number of executors to request initially is set to the biggest
     # of .spec.dynamicAllocation.initialExecutors and .spec.executor.instances if both are set.
     instances: 1
-    cores: 7
-    coreLimit: "7500m"
-    memory: "11500m"
+    cores: 1
+    coreLimit: "1500m"
+    memory: "2000m"
 
 #--------------------------------------------------------------------------------
 # Hub configuration
@@ -85,12 +85,12 @@ hubImage:
     hubImageTag: "latest"
 
 hub:
-  replicas: 3
+  replicas: 1
   ingress:
     path: "/api/?(.*)"
     servicePort: "8000"
   resources:
-    memory: "2Gi"
+    memory: "1Gi"
     cpu: "1000m"
 
 hubCmd:
@@ -124,18 +124,18 @@ frontend:
 postgres:
   enabled: true
   pvc:
-    storageSize: "100Gi"
-    backupVolumeStorageSize: "50Gi"
+    storageSize: "10Gi"
+    backupVolumeStorageSize: "5Gi"
   image:
     version: "14"
   resources:
-    memory: "8Gi"
-    cpu: "2000m"
+    memory: "4Gi"
+    cpu: "1000m"
 
 #--------------------------------------------------------------------------------
 # Ingress Nginx & Cert-manager
 #--------------------------------------------------------------------------------
 ingress:
-  enabled: true
+  enabled: false
   certificates:
     registeredEmail: "devops@qualytics.co"
