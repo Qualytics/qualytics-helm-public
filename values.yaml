@@ -1,0 +1,141 @@
+######------------------------------------------------------------
+# Qualytics default values
+######------------------------------------------------------------
+
+#--------------------------------------------------------------------------------
+# Dependencies
+#--------------------------------------------------------------------------------
+spark-operator:
+  webhook:
+    enable: true
+    port: 443
+  nodeSelector:
+    appNodes: "true"
+
+ingress-nginx:
+  controller:
+    nodeSelector:
+      appNodes: "true"
+    admissionWebhooks:
+      enabled: true
+      timeoutSeconds: 30
+    service:
+      annotations:
+        service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+        service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: 'true'
+        service.beta.kubernetes.io/aws-load-balancer-type: nlb
+
+cert-manager:
+  installCRDs: "true"
+  nodeSelector:
+    appNodes: "true"
+#--------------------------------------------------------------------------------
+# Global values
+#--------------------------------------------------------------------------------
+
+# Keep this for dns records and other specifics that are used across
+# the entire app
+global:
+  platform: "aws"
+  tenant: "develop"
+  dnsRecord: "{{ .Values.global.tenant }}.qualytics.io"
+  auth0_domain: "auth.qualytics.io"
+  imageUrls:
+    firewallImageUrl: "artifactory.qualytics.io:443/docker/firewall-prod"
+    hubImageUrl: "artifactory.qualytics.io:443/docker/hub-prod"
+    frontendImageUrl: "artifactory.qualytics.io:443/docker/frontend-prod"
+
+#--------------------------------------------------------------------------------
+# Firewall configuration
+#--------------------------------------------------------------------------------
+firewallImage:
+  image:
+    firewallImageTag: "latest"
+
+firewall:
+  sparkVersion: "3.3.2"
+  eventLog:
+    enable: "false"
+  useCache: "true"
+  numRepartition: 0
+  partitionSize: 10000000
+  threadPoolParallelism: -1
+  driver:
+    cores: 7
+    coreLimit: "7500m"
+    memory: "11500m"
+  dynamicAllocation:
+    enabled: true
+    initialExecutors: 0
+    minExecutors: 0
+    maxExecutors: 10
+  executor:
+    ## Note that if dynamic allocation is enabled, the number of executors to request initially is set to the biggest
+    # of .spec.dynamicAllocation.initialExecutors and .spec.executor.instances if both are set.
+    instances: 1
+    cores: 7
+    coreLimit: "7500m"
+    memory: "11500m"
+
+#--------------------------------------------------------------------------------
+# Hub configuration
+#--------------------------------------------------------------------------------
+hubImage:
+  image:
+    hubImageTag: "latest"
+
+hub:
+  replicas: 3
+  ingress:
+    path: "/api/?(.*)"
+    servicePort: "8000"
+  resources:
+    memory: "2Gi"
+    cpu: "1000m"
+
+hubCmd:
+  resources:
+    memory: "256Mi"
+    cpu: "200m"
+
+hubUserKeys:
+  enabled: true
+
+#--------------------------------------------------------------------------------
+# Frontend configuration
+#--------------------------------------------------------------------------------
+frontendImage:
+  image:
+    frontendImageTag: "latest"
+
+frontend:
+  replicas: 1
+  ingress:
+    path: "/?(.*)"
+    servicePort: "8080"
+  resources:
+    memory: "256Mi"
+    cpu: "200m"
+
+#--------------------------------------------------------------------------------
+# Postgres
+#--------------------------------------------------------------------------------
+# Set values for cluster install of Postgres
+postgres:
+  enabled: true
+  pvc:
+    storageSize: "100Gi"
+    backupVolumeStorageSize: "50Gi"
+  image:
+    version: "14"
+  resources:
+    memory: "8Gi"
+    cpu: "2000m"
+
+#--------------------------------------------------------------------------------
+# Ingress Nginx & Cert-manager
+#--------------------------------------------------------------------------------
+ingress:
+  enabled: true
+  certificates:
+    registeredEmail: "devops@qualytics.co"

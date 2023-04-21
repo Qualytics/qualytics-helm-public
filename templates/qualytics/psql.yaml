@@ -1,0 +1,42 @@
+{{- if ( eq .Values.postgres.enabled true ) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: psql-deployment
+  labels:
+    app: psql-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: psql-deployment
+      labels:
+        app: psql-deployment
+    spec:
+      nodeSelector:
+        appNodes: "true"
+      containers:
+        - name: psql-deployment
+          image: {{ printf "postgres:%s" .Values.postgres.image.version }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/bash
+            - -c
+            - |
+              sleep 60m
+          volumeMounts:
+            - name: postgres-snapshots-pvc
+              mountPath: /mnt/postgres/data
+          resources:
+            limits:
+              memory: 100Mi
+              cpu: 100m
+      restartPolicy: Always
+      volumes:
+        - name: postgres-snapshots-pvc
+          persistentVolumeClaim:
+            claimName: postgres-snapshots-claim
+  selector:
+    matchLabels:
+      app: psql-deployment
+  {{- end }}

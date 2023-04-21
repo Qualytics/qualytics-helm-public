@@ -1,0 +1,162 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-api
+spec:
+  replicas: {{ .Values.hub.replicas }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-api
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-api
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      nodeSelector:
+        appNodes: "true"
+      containers:
+      - name: api
+        image: "{{ tpl .Values.global.imageUrls.hubImageUrl . }}:{{ .Values.hubImage.image.hubImageTag | toString }}"
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/bash","-c"]
+        args: ["python /app/hub_api.py"]
+        resources:
+          limits:
+            {{- with .Values.hub.resources }}
+            memory: {{ .memory }}
+            cpu: {{ .cpu }}
+            {{- end }}
+        ports:
+          - containerPort: {{ .Values.hub.ingress.servicePort }}
+        env:
+          - name: APP_AUTO_RELOAD
+            value: "False"
+          - name: CORS_ORIGINS
+            value: {{ tpl .Values.global.dnsRecord . | quote }}
+          {{- if ( eq .Values.postgres.enabled true ) }}
+          - name: POSTGRES_CONNECTION_URL
+            value: "postgres:postgres@{{ .Release.Name }}-postgres.{{ .Release.Namespace }}.svc.cluster.local:5432/surveillance_hub"
+          {{- else }}
+          - name: POSTGRES_CONNECTION_URL
+            valueFrom:
+              secretKeyRef:
+                name: hub-config
+                key: connection_url
+          {{- end }}
+          - name: DATABASE_URL
+            value: "postgresql+psycopg2://$(POSTGRES_CONNECTION_URL)"
+          - name: SMTP_SENDER_USER
+            valueFrom:
+              secretKeyRef:
+                name: hub-config
+                key: smtp_sender_user
+          - name: SMTP_SENDER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: hub-config
+                key: smtp_sender_password
+          - name: API_ROOT_PATH
+            value: /api
+          - name: API_ROOT_URL
+            value: {{ printf "http://%s-api-service:8000$(API_ROOT_PATH)" .Release.Name }}
+          - name: AUTH0_DOMAIN
+            value: {{ .Values.global.auth0_domain | quote }}
+          - name: SECRETS_PASSPHRASE
+            valueFrom:
+              secretKeyRef:
+                name: hub-config
+                key: secrets_passphrase
+          - name: AUTH0_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                name: hub-auth
+                key: auth0_client_id
+          - name: AUTH0_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: hub-auth
+                key: auth0_client_secret
+          - name: AUTH0_AUDIENCE
+            valueFrom:
+              secretKeyRef:
+                name: hub-auth
+                key: auth0_audience
+          - name: AUTH0_ORGANIZATION
+            valueFrom:
+              secretKeyRef:
+                name: hub-auth
+                key: auth0_organization
+        {{- if ( eq .Values.hubUserKeys.enabled true ) }}
+          - name: AUTH0_USER_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                name: hub-auth
+                key: auth0_user_client_id
+          - name: AUTH0_USER_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: hub-auth
+                key: auth0_user_client_secret
+         {{- end }}         
+          - name: RABBIT_MQ_HOST
+            value: "{{ .Release.Name }}-rabbitmq"
+          - name: RABBIT_MQ_USER
+            value: "user"
+          - name: RABBIT_MQ_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: rabbitmq-creds
+                key: rabbitmq-password
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-api-service
+  labels:
+    app: {{ .Release.Name }}-api-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.hub.ingress.servicePort }}
+      targetPort: {{ .Values.hub.ingress.servicePort }}
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ .Release.Name }}-api
+
+{{- if ( eq .Values.ingress.enabled true ) }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-api-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: 'letsencrypt'
+    nginx.ingress.kubernetes.io/proxy-redirect-from: 'http'
+    nginx.ingress.kubernetes.io/proxy-redirect-to: 'https'
+    nginx.ingress.kubernetes.io/use-regex: 'true'
+    nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
+    nginx.ingress.kubernetes.io/enable-cors: 'true'
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - {{ tpl .Values.global.dnsRecord . | quote }}
+      secretName: api-tls-cert
+  rules:
+    - host: {{ tpl .Values.global.dnsRecord . | quote }}
+      http:
+        paths:
+          - path: {{ .Values.hub.ingress.path | quote }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}-api-service
+                port:
+                  number: {{ .Values.hub.ingress.servicePort }}
+{{- end }}

@@ -1,0 +1,132 @@
+apiVersion: "sparkoperator.k8s.io/v1beta2"
+kind: SparkApplication
+metadata:
+  name: {{ .Release.Name }}-spark
+spec:
+  type: Scala
+  mode: cluster
+  image: "{{ tpl .Values.global.imageUrls.firewallImageUrl . }}:{{ .Values.firewallImage.image.firewallImageTag }}"
+  imagePullPolicy: IfNotPresent
+  imagePullSecrets:
+    - regcred
+  restartPolicy:
+    type: Always
+    onFailureRetries: 10
+    onFailureRetryInterval: 10
+    onSubmissionFailureRetries: 10
+    onSubmissionFailureRetryInterval: 10
+  mainClass: io.qualytics.firewall.SparkMothership
+  mainApplicationFile: "local:///opt/qualytics/libs/firewall-core.jar"
+  sparkVersion: {{ .Values.firewall.sparkVersion }}
+  sparkConf:
+    spark.kubernetes.memoryOverheadFactor: "0.2"
+    spark.eventLog.enabled: {{ .Values.firewall.eventLog.enable | quote }}
+    spark.kubernetes.submission.connectionTimeout: "480000"
+    spark.kubernetes.submission.requestTimeout: "480000"
+    spark.kubernetes.driver.connectionTimeout: "480000"
+    spark.kubernetes.driver.requestTimeout: "480000"
+  volumes:
+    - name: "spark-local-dir-driver"
+    {{- if ( eq .Values.global.platform "aws" ) }}
+      hostPath:
+        path: "/local-1/spark-local-dir"
+    {{- else if ( eq .Values.global.platform "gcp" ) }}
+      hostPath:
+        path: "/var/spark-local-dir"
+    {{- else }}
+      emptyDir: {}
+    {{- end }}
+    - name: "spark-local-dir-executor-1"
+    {{- if ( eq .Values.global.platform "aws" ) }}
+      hostPath:
+        path: "/local-1/spark-local-dir"
+    {{- else if ( eq .Values.global.platform "gcp" ) }}
+      hostPath:
+        path: "/var/spark-local-dir"
+    {{- else }}
+      emptyDir: {}
+    {{- end }}
+  driver:
+{{- $resources := .Values.firewall -}}
+    {{- with $resources.driver }}
+    nodeSelector:
+      sparkNodes: "true"
+    cores: {{ .cores }}
+    coreLimit: {{ .coreLimit }}
+    memory: {{ .memory }}
+    {{- end }}
+    javaOptions:
+      "-Divy.cache.dir=/tmp
+       -Divy.home=/tmp
+       -Dlog4j.configuration=file:/opt/qualytics/libs/log4j.properties
+       -Dconfig.resource=prod.conf
+       -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
+    env:
+      - name: MOTHERSHIP_SURVEILLANCE_HUB_URL
+        value: {{ printf "http://%s-api-service:%s/api" .Release.Name .Values.hub.ingress.servicePort }}
+      - name: MOTHERSHIP_AUTH0_DOMAIN
+        value: "https://{{ .Values.global.auth0_domain }}"
+      - name: MOTHERSHIP_AUTH0_AUDIENCE
+        valueFrom:
+          secretKeyRef:
+            name: hub-auth
+            key: auth0_audience
+      - name: MOTHERSHIP_AUTH0_CLIENT_ID
+        valueFrom:
+          secretKeyRef:
+            name: hub-auth
+            key: auth0_client_id
+      - name: MOTHERSHIP_AUTH0_CLIENT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: hub-auth
+            key: auth0_client_secret
+      - name: MOTHERSHIP_RABBIT_HOST
+        value: "{{ .Release.Name }}-rabbitmq"
+      - name: MOTHERSHIP_RABBIT_PASS
+        valueFrom:
+          secretKeyRef:
+            name: rabbitmq-creds
+            key: rabbitmq-password
+      - name: MOTHERSHIP_RABBIT_USER
+        value: "user"
+      - name: MOTHERSHIP_USE_CACHE
+        value: {{ .Values.firewall.useCache | quote }}
+      - name: MOTHERSHIP_NUM_REPARTITION
+        value: {{ .Values.firewall.numRepartition | quote }}
+      - name: MOTHERSHIP_PARTITION_SIZE
+        value: {{ .Values.firewall.partitionSize | int | quote }}
+    {{- if gt ( .Values.firewall.threadPoolParallelism | int ) 0 }}
+      - name: MOTHERSHIP_THREAD_POOL_PARALLELISM
+        value: {{ .Values.firewall.threadPoolParallelism | quote }}
+    {{- end }}
+    labels:
+      version: {{ .Values.firewall.sparkVersion }}
+    serviceAccount: {{ .Release.Name }}-spark
+    volumeMounts:
+      - name: "spark-local-dir-driver"
+        mountPath: "/tmp/spark-local-dir"
+  dynamicAllocation:
+    {{- with $resources.dynamicAllocation }}
+    enabled: true
+    initialExecutors: {{ .initialExecutors }}
+    minExecutors: {{ .minExecutors }}
+    maxExecutors: {{ .maxExecutors }}
+    {{- end }}
+  executor:
+    {{- with $resources.executor }}
+    instances: {{ .instances }}
+    cores: {{ .cores }}
+    coreLimit: {{ .coreLimit }}
+    memory: {{ .memory }}
+    {{- end }}
+    javaOptions:
+      "-Dlog4j.configuration=file:/opt/qualytics/libs/log4j.properties
+       -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
+    labels:
+      version: {{ .Values.firewall.sparkVersion }}
+    nodeSelector:
+      sparkNodes: "true"
+    volumeMounts:
+      - name: "spark-local-dir-executor-1"
+        mountPath: "/tmp/spark-local-dir-1"

@@ -1,0 +1,107 @@
+{{- if ( eq .Values.postgres.enabled true ) }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  {{- if ( eq .Values.global.platform "aws" ) }}
+  storageClassName: aws
+  {{- else if ( eq .Values.global.platform "gcp" ) }}
+  storageClassName: gcp-fast
+  {{- else if ( eq .Values.global.platform "azure" ) }}
+  storageClassName: azure-fast
+  {{- else }}
+  storageClassName: local
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.postgres.pvc.storageSize }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-postgres
+  labels:
+    service: {{ .Release.Name }}-postgres-service
+spec:
+  clusterIP: None
+  selector:
+    app: {{ .Release.Name }}-postgres
+  ports:
+    - protocol: TCP
+      port: 5432
+      name: postgres
+      targetPort: 5432
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-postgres
+  labels:
+    app: {{ .Release.Name }}-postgres
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-postgres
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-postgres
+    spec:
+      terminationGracePeriodSeconds: 10
+      nodeSelector:
+          appNodes: "true"
+      containers:
+      - name: postgres
+        args:
+          - -c
+          - max_connections=10000
+          - -c
+          - shared_buffers=2GB
+          - -c
+          - maintenance_work_mem=1GB
+          - -c
+          - work_mem=128MB
+          - -c
+          - log_statement=all
+          - -c
+          - log_destination=stderr
+        image: {{ printf "postgres:%s" .Values.postgres.image.version }}
+        ports:
+        - containerPort: 5432
+          name: postgres
+        env:
+          - name: POSTGRES_PASSWORD
+            value: postgres
+          - name: POSTGRES_DB
+            value: surveillance_hub
+          - name: PGDATA
+            value: /mnt/data/pgdata
+        resources:
+          limits:
+            {{- with .Values.postgres.resources }}
+            memory: {{ .memory }}
+            cpu: {{ .cpu }}
+            {{- end }}
+        volumeMounts:
+        - name: postgres-data-pvc
+          mountPath: /mnt/data
+        - name: pgshm
+          mountPath: /dev/shm
+      volumes:
+        - name: postgres-data-pvc
+          persistentVolumeClaim:
+            claimName: postgres-data-claim
+        - name: pgshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: "1Gi"
+{{- end }}

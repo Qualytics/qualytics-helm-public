@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-cmd
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-cmd
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-cmd
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      nodeSelector:
+        appNodes: "true"
+      containers:
+      - name: cmd
+        image: "{{ tpl .Values.global.imageUrls.hubImageUrl . }}:{{ .Values.hubImage.image.hubImageTag }}"
+        imagePullPolicy: IfNotPresent
+        command: [ "/bin/bash","-c" ]
+        args: [ "python /app/hub_cmd.py" ]
+        resources:
+          limits:
+            memory: {{ .Values.hubCmd.resources.memory | quote }}
+            cpu: {{ .Values.hubCmd.resources.cpu| quote }}
+        env:
+          - name: API_ROOT_PATH
+            value: /api
+          - name: API_ROOT_URL
+            value: {{ printf "http://%s-api-service:8000$(API_ROOT_PATH)" .Release.Name }}
+          - name: SECRETS_PASSPHRASE
+            valueFrom:
+              secretKeyRef:
+                name: hub-config
+                key: secrets_passphrase
+          {{- if ( eq .Values.postgres.enabled true ) }}
+          - name: POSTGRES_CONNECTION_URL
+            value: "postgres:postgres@{{ .Release.Name }}-postgres.{{ .Release.Namespace }}.svc.cluster.local:5432/surveillance_hub"
+          {{- else }}
+          - name: POSTGRES_CONNECTION_URL
+            valueFrom:
+              secretKeyRef:
+                name: hub-config
+                key: connection_url
+          {{- end }}
+          - name: DATABASE_URL
+            value: "postgresql+psycopg2://$(POSTGRES_CONNECTION_URL)"
+          - name: AUTH0_DOMAIN
+            value: {{ .Values.global.auth0_domain }}
+          - name: AUTH0_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                name: hub-auth
+                key: auth0_client_id
+          - name: AUTH0_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: hub-auth
+                key: auth0_client_secret
+          - name: AUTH0_AUDIENCE
+            valueFrom:
+              secretKeyRef:
+                name: hub-auth
+                key: auth0_audience
+          - name: RABBIT_MQ_HOST
+            value: "{{ .Release.Name }}-rabbitmq"
+          - name: RABBIT_MQ_USER
+            value: "user"
+          - name: RABBIT_MQ_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: rabbitmq-creds
+                key: rabbitmq-password
