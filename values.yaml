@@ -36,8 +36,8 @@ cert-manager:
 # Keep this for dns records and other specifics that are used across
 # the entire app
 global:
-  platform: "aws"
-  tenant: "develop"
+  platform: "local"
+  tenant: "changeme"
   dnsRecord: "{{ .Values.global.tenant }}.qualytics.io"
   auth0_domain: "auth.qualytics.io"
   imageUrls:
