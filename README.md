@@ -1,4 +1,4 @@
-[![Artifact HUB](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/argo-workflows)](https://artifacthub.io/packages/helm/qualytics/qualytics-platform)
+[![Artifact HUB](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/qualytics)](https://artifacthub.io/packages/helm/qualytics/qualytics-platform)
 
 ## What is Qualytics?
 
