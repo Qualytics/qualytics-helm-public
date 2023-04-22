@@ -1,10 +1,13 @@
-# Qualytics Helm
-Helm chart for deploying Qualytics on Kubernetes
+[![Artifact HUB](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/argo-workflows)](https://artifacthub.io/packages/helm/qualytics/qualytics-platform)
 
-TODO:
-- Add K8S cluster requirements like node labels (`appNodes: true` and `sparkNodes: true`) and autoscaling capabilities
+## What is Qualytics?
+
+Qualytics is a closed source container-native platform for assessing, monitoring, and ameliorating data quality for the Enterprise. Learn more [about our product and capabilities here](https://qualytics.co/product/). 
+
 
 ## K8S Secrets
+
+The following secrets are required in conjunction with this Helm chart.
 
 - Docker Private Registry
 ```bash
@@ -37,3 +40,11 @@ kubectl create secret generic hub-auth \
     --from-literal=auth0_user_client_id=AUTH0_USER_CLIENT_ID \
     --from-literal=auth0_user_client_secret=AUTH0_USER_CLIENT_SECRET
 ```
+
+## Documentation
+
+[Qualytics UserGuide](https://qualytics.github.io/userguide/)
+
+## Upcoming Enhancements
+
+- Add K8S cluster requirements like node labels (`appNodes: true` and `sparkNodes: true`) and autoscaling capabilities
