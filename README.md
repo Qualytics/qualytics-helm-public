@@ -1,5 +1,3 @@
-[![Artifact HUB](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/qualytics)](https://artifacthub.io/packages/helm/qualytics/qualytics-platform)
-
 ## What is Qualytics?
 
 Qualytics is a closed source container-native platform for assessing, monitoring, and ameliorating data quality for the Enterprise. Learn more [about our product and capabilities here](https://qualytics.co/product/). 
