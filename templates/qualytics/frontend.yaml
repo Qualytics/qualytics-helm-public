@@ -38,21 +38,21 @@ spec:
           - name: VITE_QUALYTICS_AUTH0_LOGOUT_REDIRECT
             value: "https://$(VITE_QUALYTICS_DNS)"
           - name: VITE_QUALYTICS_AUTH0_DOMAIN
-            value: {{ .Values.global.auth0_domain | quote }}
+            value: {{ .Values.secrets.auth0.auth0_domain | quote }}
           - name: VITE_QUALYTICS_AUTH0_CLIENTID
             valueFrom:
               secretKeyRef:
-                name: hub-auth
+                name: qualytics-creds
                 key: auth0_spa_client_id
           - name: VITE_QUALYTICS_AUTH0_AUDIENCE
             valueFrom:
               secretKeyRef:
-                name: hub-auth
+                name: qualytics-creds
                 key: auth0_audience
           - name: VITE_QUALYTICS_AUTH0_ORGANIZATION
             valueFrom:
               secretKeyRef:
-                name: hub-auth
+                name: qualytics-creds
                 key: auth0_organization
 
 ---
@@ -79,6 +79,8 @@ kind: Ingress
 metadata:
   name: {{ .Release.Name }}-frontend-ingress
   annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "50"
     nginx.ingress.kubernetes.io/use-regex: 'true'
     nginx.ingress.kubernetes.io/rewrite-target: /$1
     nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'

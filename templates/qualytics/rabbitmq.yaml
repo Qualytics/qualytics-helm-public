@@ -140,8 +140,8 @@ spec:
         - name: RABBITMQ_DEFAULT_PASS
           valueFrom:
             secretKeyRef:
-              name: rabbitmq-creds
-              key: rabbitmq-password
+              name: qualytics-creds
+              key: rabbitmq_password
         volumeMounts:
         - name: rabbitmq-data-pvc
           mountPath: /var/lib/rabbitmq
