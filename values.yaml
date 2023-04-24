@@ -19,27 +19,49 @@ ingress-nginx:
     admissionWebhooks:
       enabled: true
       timeoutSeconds: 30
-    # service:
-    #   annotations:
-    #     service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
-    #     service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: 'true'
-    #     service.beta.kubernetes.io/aws-load-balancer-type: nlb
+    service:
+      annotations:
+        service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+        service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: 'true'
+        service.beta.kubernetes.io/aws-load-balancer-type: nlb
 
 cert-manager:
   installCRDs: "true"
   nodeSelector:
     appNodes: "true"
+
+#--------------------------------------------------------------------------------
+# Secrets
+#--------------------------------------------------------------------------------
+
+# The following secrets are required
+secrets:
+  auth0:
+    auth0_audience: changeme-api
+    auth0_organization: org_changeme
+    auth0_spa_client_id: spa_client_id
+    auth0_client_id: m2m_client_id
+    auth0_client_secret: m2m_client_secret
+    auth0_user_client_id: m2m_user_client_id
+    auth0_user_client_secret: m2m_user_client_secret
+  postgres:
+    connection_url: postgres:postgres@postgres:5432/surveillence_hub
+    secrets_passphrase: ChangeMe!
+  smtp:
+    smtp_sender_user: smtp_user
+    smtp_sender_password: smtp_password
+  rabbitmq:
+    rabbitmq_password: ChangeMe!
+
 #--------------------------------------------------------------------------------
 # Global values
 #--------------------------------------------------------------------------------
 
-# Keep this for dns records and other specifics that are used across
-# the entire app
+# Keep this for dns records and other specifics that are used across the entire app
 global:
   platform: "local"
   tenant: "changeme"
   dnsRecord: "{{ .Values.global.tenant }}.qualytics.io"
-  auth0_domain: "auth.qualytics.io"
   imageUrls:
     firewallImageUrl: "artifactory.qualytics.io:443/docker/firewall-prod"
     hubImageUrl: "artifactory.qualytics.io:443/docker/hub-prod"
