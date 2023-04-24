@@ -75,4 +75,4 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: qualytics-creds
-                key: rabbitmq-password
+                key: rabbitmq_password

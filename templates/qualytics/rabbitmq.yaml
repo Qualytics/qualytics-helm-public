@@ -141,7 +141,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: qualytics-creds
-              key: rabbitmq-password
+              key: rabbitmq_password
         volumeMounts:
         - name: rabbitmq-data-pvc
           mountPath: /var/lib/rabbitmq

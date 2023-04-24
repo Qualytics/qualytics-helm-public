@@ -87,7 +87,7 @@ spec:
         valueFrom:
           secretKeyRef:
             name: qualytics-creds
-            key: rabbitmq-password
+            key: rabbitmq_password
       - name: MOTHERSHIP_RABBIT_USER
         value: "user"
       - name: MOTHERSHIP_USE_CACHE
