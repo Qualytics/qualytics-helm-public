@@ -136,6 +136,8 @@ kind: Ingress
 metadata:
   name: {{ .Release.Name }}-api-ingress
   annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "50"
     cert-manager.io/cluster-issuer: 'letsencrypt'
     nginx.ingress.kubernetes.io/proxy-redirect-from: 'http'
     nginx.ingress.kubernetes.io/proxy-redirect-to: 'https'
