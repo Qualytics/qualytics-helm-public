@@ -3,36 +3,18 @@
 ######------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
-# Dependencies
+# Global values
 #--------------------------------------------------------------------------------
-spark-operator:
-  webhook:
-    enable: true
-    port: 443
-  nodeSelector:
-    appNodes: "true"
 
-ingress-nginx:
-  controller:
-    nodeSelector:
-      appNodes: "true"
-    admissionWebhooks:
-      enabled: true
-      timeoutSeconds: 30
-    service:
-      annotations:
-        service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
-        service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: 'true'
-        service.beta.kubernetes.io/aws-load-balancer-type: nlb
-
-cert-manager:
-  installCRDs: "true"
-  nodeSelector:
-    appNodes: "true"
-
-#--------------------------------------------------------------------------------
-# Secrets
-#--------------------------------------------------------------------------------
+# Keep this for dns records and other specifics that are used across the entire app
+global:
+  platform: "local"
+  tenant: "develop"
+  dnsRecord: "{{ .Values.global.tenant }}.qualytics.io"
+  imageUrls:
+    firewallImageUrl: "artifactory.qualytics.io:443/docker/firewall-prod"
+    hubImageUrl: "artifactory.qualytics.io:443/docker/hub-prod"
+    frontendImageUrl: "artifactory.qualytics.io:443/docker/frontend-prod"
 
 # The following secrets are required
 secrets:
@@ -53,20 +35,6 @@ secrets:
     smtp_sender_password: smtp_password
   rabbitmq:
     rabbitmq_password: ChangeMe!
-
-#--------------------------------------------------------------------------------
-# Global values
-#--------------------------------------------------------------------------------
-
-# Keep this for dns records and other specifics that are used across the entire app
-global:
-  platform: "local"
-  tenant: "develop"
-  dnsRecord: "{{ .Values.global.tenant }}.qualytics.io"
-  imageUrls:
-    firewallImageUrl: "artifactory.qualytics.io:443/docker/firewall-prod"
-    hubImageUrl: "artifactory.qualytics.io:443/docker/hub-prod"
-    frontendImageUrl: "artifactory.qualytics.io:443/docker/frontend-prod"
 
 #--------------------------------------------------------------------------------
 # Firewall configuration
@@ -162,3 +130,31 @@ ingress:
   enabled: false
   certificates:
     registeredEmail: "devops@qualytics.co"
+
+#--------------------------------------------------------------------------------
+# Dependencies
+#--------------------------------------------------------------------------------
+spark-operator:
+  webhook:
+    enable: true
+    port: 443
+  nodeSelector:
+    appNodes: "true"
+
+ingress-nginx:
+  controller:
+    nodeSelector:
+      appNodes: "true"
+    admissionWebhooks:
+      enabled: true
+      timeoutSeconds: 30
+    service:
+      annotations:
+        service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+        service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: 'true'
+        service.beta.kubernetes.io/aws-load-balancer-type: nlb
+
+cert-manager:
+  installCRDs: "true"
+  nodeSelector:
+    appNodes: "true"
