@@ -56,7 +56,7 @@ The following command will first ensure that all chart dependencies are availble
 
 `helm dependency build; helm install qualytics ./`
 
-As part of the install process, an nginx ingress will be configured with a publicly accessible IP address. Make note of this IP address as it is needed for the fourth and final step!
+As part of the install process, an nginx ingress will be configured with an inbound IP address. Make note of this IP address as it is needed for the fourth and final step!
 
 ### 4. Register your deployment's web application
 
