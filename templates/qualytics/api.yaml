@@ -101,7 +101,7 @@ spec:
               secretKeyRef:
                 name: qualytics-creds
                 key: auth0_user_client_secret
-         {{- end }}         
+         {{- end }}
           - name: RABBIT_MQ_HOST
             value: "{{ .Release.Name }}-rabbitmq"
           - name: RABBIT_MQ_USER
@@ -111,6 +111,19 @@ spec:
               secretKeyRef:
                 name: qualytics-creds
                 key: rabbitmq_password
+#--------------------------------------------------------------------------------
+# Environments that require a proxy (Http, Socks, etc..) for egress
+#--------------------------------------------------------------------------------
+# The simplest solution is to solve for this outside of Qualytics. For example, using
+#   an istio egress configured for your proxy or another similar gateway device.
+#
+# However, if proxy-aware applications are required, the HTTPS_PROXY value can be set
+#  below using PROXY_PROTOCOL of either: "https" or "socks5h"
+#
+#
+          # - name: HTTPS_PROXY
+          #   value: "<PROXY_PROTOCOL>://<USERNAME>:<PASSWORD>@<PROXY_IP_ADDRESS>:<PROXY_PORT>"
+
 
 ---
 apiVersion: v1

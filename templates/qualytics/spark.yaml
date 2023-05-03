@@ -61,6 +61,23 @@ spec:
        -Dlog4j.configuration=file:/opt/qualytics/libs/log4j.properties
        -Dconfig.resource=prod.conf
        -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
+#--------------------------------------------------------------------------------
+# Environments that require a proxy (Http, Socks, etc..) for egress
+#--------------------------------------------------------------------------------
+# The simplest solution is to solve for this outside of Qualytics. For example, using
+#   an istio egress configured for your proxy or another similar gateway device.
+#
+# However, if proxy-aware applications are required, the javaOptions string above can be
+#  updated to hold the relevant proxy information according to the JRE v17 spec:
+#    https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/net/doc-files/net-properties.html
+#
+#  If additionally, authentication is required for an http(s) proxy, use the following additional
+#   properties not documented on the page linked above:
+#  -Dhttps.proxyUser=your_username
+#  -Dhttps.proxyPassword=your_password
+#  -Dhttp.proxyUser=your_username
+#  -Dhttp.proxyPassword=your_password
+#
     env:
       - name: MOTHERSHIP_SURVEILLANCE_HUB_URL
         value: {{ printf "http://%s-api-service:%s/api" .Release.Name .Values.hub.ingress.servicePort }}
