@@ -16,6 +16,17 @@ global:
     hubImageUrl: "artifactory.qualytics.io:443/docker/hub-prod"
     frontendImageUrl: "artifactory.qualytics.io:443/docker/frontend-prod"
 
+# App image tags
+firewallImage:
+  image:
+    firewallImageTag: "latest"
+hubImage:
+  image:
+    hubImageTag: "latest"
+frontendImage:
+  image:
+    frontendImageTag: "latest"
+
 # The following secrets are required
 secrets:
   auth0:
@@ -39,10 +50,6 @@ secrets:
 #--------------------------------------------------------------------------------
 # Firewall configuration
 #--------------------------------------------------------------------------------
-firewallImage:
-  image:
-    firewallImageTag: "latest"
-
 firewall:
   sparkVersion: "3.3.2"
   eventLog:
@@ -71,10 +78,6 @@ firewall:
 #--------------------------------------------------------------------------------
 # Hub configuration
 #--------------------------------------------------------------------------------
-hubImage:
-  image:
-    hubImageTag: "latest"
-
 hub:
   replicas: 1
   ingress:
@@ -95,10 +98,6 @@ hubUserKeys:
 #--------------------------------------------------------------------------------
 # Frontend configuration
 #--------------------------------------------------------------------------------
-frontendImage:
-  image:
-    frontendImageTag: "latest"
-
 frontend:
   replicas: 1
   ingress:
