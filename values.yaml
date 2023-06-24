@@ -19,13 +19,13 @@ global:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20230620-4c47c23"
+    firewallImageTag: "20230624-18bba11"
 hubImage:
   image:
-    hubImageTag: "20230620-c45b5a7"
+    hubImageTag: "20230624-ed920f7"
 frontendImage:
   image:
-    frontendImageTag: "20230620-5ae06ad"
+    frontendImageTag: "20230624-46445cc"
 
 # The following secrets are required
 secrets:
@@ -55,9 +55,10 @@ firewall:
   eventLog:
     enable: "false"
   useCache: "true"
-  numRepartition: 0
-  partitionSize: 10000000
   threadPoolParallelism: -1
+  maxExecutors: 10
+  numCoresPerExecutor: 7
+  freeDiskPerExecutor: 200
   driver:
     cores: 7
     coreLimit: "7500m"

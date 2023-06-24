@@ -107,16 +107,17 @@ spec:
             key: rabbitmq_password
       - name: MOTHERSHIP_RABBIT_USER
         value: "user"
-      - name: MOTHERSHIP_USE_CACHE
-        value: {{ .Values.firewall.useCache | quote }}
-      - name: MOTHERSHIP_NUM_REPARTITION
-        value: {{ .Values.firewall.numRepartition | quote }}
-      - name: MOTHERSHIP_PARTITION_SIZE
-        value: {{ .Values.firewall.partitionSize | int | quote }}
-    {{- if gt ( .Values.firewall.threadPoolParallelism | int ) 0 }}
       - name: MOTHERSHIP_THREAD_POOL_PARALLELISM
         value: {{ .Values.firewall.threadPoolParallelism | quote }}
     {{- end }}
+      - name: MOTHERSHIP_USE_CACHE
+        value: {{ .Values.firewall.useCache | quote }}
+      - name: MOTHERSHIP_MAX_EXECUTORS
+        value: {{ .Values.firewall.maxExecutors | int | quote }}
+      - name: MOTHERSHIP_NUM_CORES_PER_EXECUTOR
+        value: {{ .Values.firewall.numCoresPerExecutor | int | quote  }}
+      - name: MOTHERSHIP_FREE_DISK_PER_EXECUTOR
+        value: {{ .Values.firewall.freeDiskPerExecutor | int | quote  }}
     labels:
       version: {{ .Values.firewall.sparkVersion }}
     serviceAccount: {{ .Release.Name }}-spark
