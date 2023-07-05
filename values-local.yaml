@@ -52,8 +52,7 @@ secrets:
 #--------------------------------------------------------------------------------
 firewall:
   sparkVersion: "3.3.2"
-  eventLog:
-    enable: "false"
+  eventLog: "false"
   useCache: "true"
   threadPoolParallelism: -1
   maxExecutors: 1

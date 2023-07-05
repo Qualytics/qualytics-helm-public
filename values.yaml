@@ -52,17 +52,16 @@ secrets:
 #--------------------------------------------------------------------------------
 firewall:
   sparkVersion: "3.3.2"
-  eventLog:
-    enable: "false"
+  eventLog: "false"
   useCache: "true"
   threadPoolParallelism: -1
-  maxExecutors: 10
+  maxExecutors: 20
   numCoresPerExecutor: 7
   freeDiskPerExecutor: 200
   driver:
     cores: 7
-    coreLimit: "7500m"
-    memory: "11500m"
+    coreLimit: "7000m"
+    memory: "11700m"
   dynamicAllocation:
     enabled: true
     initialExecutors: 0
@@ -73,8 +72,8 @@ firewall:
     # of .spec.dynamicAllocation.initialExecutors and .spec.executor.instances if both are set.
     instances: 1
     cores: 7
-    coreLimit: "7500m"
-    memory: "11500m"
+    coreLimit: "7000m"
+    memory: "11700m"
 
 #--------------------------------------------------------------------------------
 # Hub configuration
@@ -85,13 +84,13 @@ hub:
     path: "/api/?(.*)"
     servicePort: "8000"
   resources:
-    memory: "2Gi"
+    memory: "4Gi"
     cpu: "1000m"
 
 hubCmd:
   resources:
-    memory: "256Mi"
-    cpu: "200m"
+    memory: "512Mi"
+    cpu: "500m"
 
 hubUserKeys:
   enabled: true
@@ -120,8 +119,8 @@ postgres:
   image:
     version: "14"
   resources:
-    memory: "8Gi"
-    cpu: "2000m"
+    memory: "14Gi"
+    cpu: "3000m"
 
 #--------------------------------------------------------------------------------
 # Ingress Nginx & Cert-manager
@@ -151,10 +150,11 @@ ingress-nginx:
     service:
       type: LoadBalancer
       externalTrafficPolicy: Local
-      annotations:
-        service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
-        service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: 'true'
-        service.beta.kubernetes.io/aws-load-balancer-type: nlb
+      # enable this for aws
+      # annotations:
+      #   service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+      #   service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: 'true'
+      #   service.beta.kubernetes.io/aws-load-balancer-type: nlb
 
 cert-manager:
   installCRDs: "true"
