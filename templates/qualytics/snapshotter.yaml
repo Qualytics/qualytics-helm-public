@@ -40,7 +40,7 @@ spec:
           - name: snapshotter
             env:
               - name: URL
-                value: postgresql://postgres:postgres@{{ .Release.Name }}-postgres.{{ .Release.Namespace }}.svc.cluster.local:5432/surveillance_hub"
+                value: postgresql://postgres:postgres@{{ .Release.Name }}-postgres.{{ .Release.Namespace }}.svc.cluster.local:5432/surveillance_hub
             image: {{ printf "postgres:%s" .Values.postgres.image.version }}
             imagePullPolicy: IfNotPresent
             command:
