@@ -22,8 +22,15 @@ Node(s) with the following labels must be made available:
 - appNodes
 - sparkNodes
 
-
 Nodes with the `sparkNodes` label will be used for Spark jobs and nodes with the `appNodes` label will be used for all other needs.  It is possible to provide a single node with both labels if that node provides sufficient resources to operate the entire cluster according to the specified chart values.  However, it is highly recommended to setup autoscaling for Apache Spark operations by providing a group of nodes with the `sparkNodes` label that will grow on demand.
+
+|          |          Application Nodes          |                  Spark Nodes                    |
+|----------|:-----------------------------------:|:-----------------------------------------------:|
+| Label    | appNodes                            | sparkNodes                                      |
+| Scaling  | Fixed                               | Autoscaling                                     |
+| EKS      | 1 x t3.2xlarge (on-demand)          | 1 - 21 x r5d.2xlarge (spot)                     |
+| GKE      | 1 x n2-standard-8 (on-demand)       | 1 - 21 x c2d-highmem-8 (spot)                   |
+| AKS      | 1 x Standard_D8_v5 (on-demand)      | 1 - 21 x Standard_E8s_v5 (spot)                 |
 
 #### Docker Registry Secrets
 

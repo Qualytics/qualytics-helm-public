@@ -51,7 +51,7 @@ secrets:
 # Firewall configuration
 #--------------------------------------------------------------------------------
 firewall:
-  sparkVersion: "3.3.2"
+  sparkVersion: "3.4.1"
   eventLog: "false"
   useCache: "true"
   threadPoolParallelism: -1
