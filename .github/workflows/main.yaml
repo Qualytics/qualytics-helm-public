@@ -1,0 +1,42 @@
+name: Publish Helm Package
+
+on:
+  push:
+    branches:
+      - actions-helm-publish # change this to main after testing
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v1
+        with:
+          version: 'v3'
+
+      - name: Get chart version
+        id: chart_version
+        run: |
+          version=$(grep '^version:' ./Chart.yaml | sed 's/^version:[ "]*\([^"]*\).*$/\1/')
+          echo "::set-output name=version::$version"
+
+      - name: Build and package Helm chart
+        run: |
+          helm package ./
+          helm repo index --url https://github.com/Qualytics/qualytics-helm-public/qualytics/ .
+
+      - name: Configure Docker
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish Helm package
+        run: |
+          helm chart save ./qualytics-${{ steps.chart_version.outputs.version }}.tgz ghcr.io/Qualytics/qualytics-helm-public/qualytics:${{ steps.chart_version.outputs.version }}
+          helm chart push ghcr.io/Qualytics/qualytics-helm-public/qualytics:${{ steps.chart_version.outputs.version }}
