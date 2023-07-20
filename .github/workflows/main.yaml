@@ -37,5 +37,4 @@ jobs:
 
       - name: Publish Helm package
         run: |
-          helm chart save ./qualytics-${{ steps.chart_version.outputs.version }}.tgz ghcr.io/Qualytics/qualytics-helm-public/qualytics:${{ steps.chart_version.outputs.version }}
-          helm chart push ghcr.io/Qualytics/qualytics-helm-public/qualytics:${{ steps.chart_version.outputs.version }}
+          helm push ./qualytics-${{ steps.chart_version.outputs.version }}.tgz oci://ghcr.io/Qualytics/qualytics-helm-public/qualytics
