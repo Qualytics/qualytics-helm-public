@@ -39,6 +39,8 @@ jobs:
       #     helm push ./qualytics-${{ steps.chart_version.outputs.version }}.tgz oci://ghcr.io/qualytics
 
       - name: Publish Helm package
-        uses: helm/chart-releaser-action@v1.6.0
+        uses: helm/chart-releaser-action@v1.5.0
+        with:
+          charts_dir: .
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
