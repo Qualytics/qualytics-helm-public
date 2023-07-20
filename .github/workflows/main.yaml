@@ -26,7 +26,6 @@ jobs:
         run: |
           helm dependency update
           helm package ./
-          helm repo index --url https://github.com/Qualytics/qualytics-helm-public/qualytics/ .
 
       - name: Configure Docker
         uses: docker/login-action@v1
