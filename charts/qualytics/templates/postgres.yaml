@@ -63,11 +63,11 @@ spec:
           - -c
           - max_connections=10000
           - -c
-          - shared_buffers=2GB
+          - shared_buffers=4GB
           - -c
           - maintenance_work_mem=1GB
           - -c
-          - work_mem=128MB
+          - work_mem=512MB
           - -c
           - log_statement=all
           - -c
@@ -101,5 +101,5 @@ spec:
         - name: pgshm
           emptyDir:
             medium: Memory
-            sizeLimit: "1Gi"
+            sizeLimit: "4Gi"
 {{- end }}

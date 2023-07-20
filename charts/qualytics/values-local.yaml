@@ -51,13 +51,13 @@ secrets:
 # Firewall configuration
 #--------------------------------------------------------------------------------
 firewall:
-  sparkVersion: "3.3.2"
-  eventLog:
-    enable: "false"
+  sparkVersion: "3.4.1"
+  eventLog: "false"
   useCache: "true"
-  numRepartition: 0
-  partitionSize: 10000000
   threadPoolParallelism: -1
+  maxExecutors: 1
+  numCoresPerExecutor: 1
+  freeDiskPerExecutor: 50
   driver:
     cores: 1
     coreLimit: "1500m"

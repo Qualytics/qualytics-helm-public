@@ -22,8 +22,15 @@ Node(s) with the following labels must be made available:
 - appNodes
 - sparkNodes
 
-
 Nodes with the `sparkNodes` label will be used for Spark jobs and nodes with the `appNodes` label will be used for all other needs.  It is possible to provide a single node with both labels if that node provides sufficient resources to operate the entire cluster according to the specified chart values.  However, it is highly recommended to setup autoscaling for Apache Spark operations by providing a group of nodes with the `sparkNodes` label that will grow on demand.
+
+|          |          Application Nodes          |                  Spark Nodes                    |
+|----------|:-----------------------------------:|:-----------------------------------------------:|
+| Label    | appNodes                            | sparkNodes                                      |
+| Scaling  | Fixed                               | Autoscaling                                     |
+| EKS      | 1 x t3.2xlarge (on-demand)          | 1 - 21 x r5d.2xlarge (spot)                     |
+| GKE      | 1 x n2-standard-8 (on-demand)       | 1 - 21 x c2d-highmem-8 (spot)                   |
+| AKS      | 1 x Standard_D8_v5 (on-demand)      | 1 - 21 x Standard_E8s_v5 (spot)                 |
 
 #### Docker Registry Secrets
 
@@ -38,7 +45,7 @@ kubectl create secret docker-registry regcred --docker-server=artifactory.qualyt
 
 Update `values.yaml` according to your requirements. At minimum, the "secrets" section at the top should be updated with the Auth0 settings supplied by your Qualytics account manager.
 
-```
+```bash
 auth0_audience: changeme-api
 auth0_organization: org_changeme
 auth0_spa_client_id: spa_client_id
@@ -54,7 +61,10 @@ Contact your [Qualytics account manager](mailto://hello@qualytics.co) for assist
 
 The following command will first ensure that all chart dependencies are availble and then proceed with an installation of the Qualytics platform.
 
-`helm dependency build; helm install qualytics ./`
+```bash
+helm repo add qualytics https://qualytics.github.io/qualytics-helm-public
+helm install qualytics
+```
 
 As part of the install process, an nginx ingress will be configured with an inbound IP address. Make note of this IP address as it is needed for the fourth and final step!
 
@@ -65,5 +75,3 @@ Send your [account manager](mailto://hello@qualytics.co) the IP address for your
 ## Additional Documentation
 
 - [Qualytics UserGuide](https://qualytics.github.io/userguide/)
-
-
