@@ -25,7 +25,7 @@ hubImage:
     hubImageTag: "20230721-e143f7b"
 frontendImage:
   image:
-    frontendImageTag: "20230721-11dd41e"
+    frontendImageTag: "20230723-6d66f96"
 
 # The following secrets are required
 secrets:
