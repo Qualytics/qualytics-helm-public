@@ -19,13 +19,13 @@ global:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20230721-3d3cb62"
+    firewallImageTag: "20230726-ae4a3d6"
 hubImage:
   image:
-    hubImageTag: "20230721-e143f7b"
+    hubImageTag: "20230725-aeddc4f"
 frontendImage:
   image:
-    frontendImageTag: "20230723-6d66f96"
+    frontendImageTag: "20230725-b5bda82"
 
 # The following secrets are required
 secrets:
