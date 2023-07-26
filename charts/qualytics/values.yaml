@@ -19,7 +19,7 @@ global:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20230726-64b452b"
+    firewallImageTag: "20230726-6b66294"
 hubImage:
   image:
     hubImageTag: "20230725-aeddc4f"
