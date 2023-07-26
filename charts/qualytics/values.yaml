@@ -19,7 +19,13 @@ global:
 # App image tags
 firewallImage:
   image:
+<<<<<<< HEAD
     firewallImageTag: "20230726-ae4a3d6"
+||||||| parent of b4c7704 (Bugfix Update to firewall image)
+    firewallImageTag: "20230721-3d3cb62"
+=======
+    firewallImageTag: "20230726-fef673d"
+>>>>>>> b4c7704 (Bugfix Update to firewall image)
 hubImage:
   image:
     hubImageTag: "20230725-aeddc4f"
