@@ -16,8 +16,17 @@ spec:
     spec:
       imagePullSecrets:
         - name: regcred
+      {{- if ( eq .Values.selectors.enabled true ) }}
       nodeSelector:
         appNodes: "true"
+      {{- end }}
+      {{- if ( eq .Values.tolerations.enabled true ) }}
+      tolerations:
+        - key: appNodes
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
+      {{- end }}
       containers:
       - name: cmd
         image: "{{ tpl .Values.global.imageUrls.hubImageUrl . }}:{{ .Values.hubImage.image.hubImageTag }}"

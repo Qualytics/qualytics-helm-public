@@ -13,8 +13,17 @@ spec:
       labels:
         app: psql-deployment
     spec:
+      {{- if ( eq .Values.selectors.enabled true ) }}
       nodeSelector:
         appNodes: "true"
+      {{- end }}
+      {{- if ( eq .Values.tolerations.enabled true ) }}
+      tolerations:
+        - key: appNodes
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
+      {{- end }}
       containers:
         - name: psql-deployment
           image: {{ printf "postgres:%s" .Values.postgres.image.version }}
