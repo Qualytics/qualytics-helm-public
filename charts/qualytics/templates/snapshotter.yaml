@@ -34,8 +34,17 @@ spec:
     spec:
       template:
         spec:
+          {{- if ( eq .Values.selectors.enabled true ) }}
           nodeSelector:
             appNodes: "true"
+          {{- end }}
+          {{- if ( eq .Values.tolerations.enabled true ) }}
+          tolerations:
+            - key: appNodes
+              operator: Equal
+              value: "true"
+              effect: NoSchedule
+          {{- end }}
           containers:
           - name: snapshotter
             env:

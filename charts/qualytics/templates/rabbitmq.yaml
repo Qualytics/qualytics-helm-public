@@ -93,8 +93,17 @@ spec:
       labels:
         app: {{ .Release.Name }}-rabbitmq
     spec:
+      {{- if ( eq .Values.selectors.enabled true ) }}
       nodeSelector:
-          appNodes: "true"
+        appNodes: "true"
+      {{- end }}
+      {{- if ( eq .Values.tolerations.enabled true ) }}
+      tolerations:
+        - key: appNodes
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
+      {{- end }}
       serviceAccountName: {{ .Release.Name }}-rabbitmq
       initContainers:
       - name: config

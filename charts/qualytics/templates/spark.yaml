@@ -50,11 +50,20 @@ spec:
   driver:
 {{- $resources := .Values.firewall -}}
     {{- with $resources.driver }}
-    nodeSelector:
-      sparkNodes: "true"
     cores: {{ .cores }}
     coreLimit: {{ .coreLimit }}
     memory: {{ .memory }}
+    {{- end }}
+    {{- if ( eq .Values.selectors.enabled true ) }}
+    nodeSelector:
+      sparkNodes: "true"
+    {{- end }}
+    {{- if ( eq .Values.tolerations.enabled true ) }}
+    tolerations:
+      - key: sparkNodes
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
     {{- end }}
     javaOptions:
       "-Divy.cache.dir=/tmp
@@ -156,8 +165,17 @@ spec:
        -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
     labels:
       version: {{ .Values.firewall.sparkVersion }}
+    {{- if ( eq .Values.selectors.enabled true ) }}
     nodeSelector:
       sparkNodes: "true"
+    {{- end }}
+    {{- if ( eq .Values.tolerations.enabled true ) }}
+    tolerations:
+      - key: sparkNodes
+        operator: Equal
+        value: "true"
+        effect: NoSchedule
+    {{- end }}
     volumeMounts:
       - name: "spark-local-dir-executor"
         mountPath: "/tmp/spark-local-dir"

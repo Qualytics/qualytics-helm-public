@@ -3,6 +3,47 @@
 ######------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
+# Dependencies
+#--------------------------------------------------------------------------------
+spark-operator:
+  webhook:
+    enable: true
+    port: 443
+  # nodeSelector:
+  #   appNodes: "true"
+  # tolerations:
+  #   - key: appNodes
+  #     operator: Equal
+  #     value: "true"
+  #     effect: NoSchedule
+
+ingress-nginx:
+  controller:
+    # nodeSelector:
+    #   appNodes: "true"
+    # tolerations:
+    #   - key: appNodes
+    #     operator: Equal
+    #     value: "true"
+    #     effect: NoSchedule
+    admissionWebhooks:
+      enabled: true
+      timeoutSeconds: 30
+    service:
+      type: LoadBalancer
+      externalTrafficPolicy: Local
+
+cert-manager:
+  installCRDs: "true"
+  # nodeSelector:
+  #   appNodes: "true"
+  # tolerations:
+  #   - key: appNodes
+  #     operator: Equal
+  #     value: "true"
+  #     effect: NoSchedule
+
+#--------------------------------------------------------------------------------
 # Global values
 #--------------------------------------------------------------------------------
 
@@ -15,6 +56,12 @@ global:
     firewallImageUrl: "artifactory.qualytics.io:443/docker/firewall-prod"
     hubImageUrl: "artifactory.qualytics.io:443/docker/hub-prod"
     frontendImageUrl: "artifactory.qualytics.io:443/docker/frontend-prod"
+
+# Node scheduling
+tolerations:
+  enabled: false
+selectors:
+  enabled: false
 
 # App image tags
 firewallImage:
@@ -129,29 +176,3 @@ ingress:
   enabled: false
   certificates:
     registeredEmail: "devops@qualytics.co"
-
-#--------------------------------------------------------------------------------
-# Dependencies
-#--------------------------------------------------------------------------------
-spark-operator:
-  webhook:
-    enable: true
-    port: 443
-  nodeSelector:
-    appNodes: "true"
-
-ingress-nginx:
-  controller:
-    nodeSelector:
-      appNodes: "true"
-    admissionWebhooks:
-      enabled: true
-      timeoutSeconds: 30
-    service:
-      type: LoadBalancer
-      externalTrafficPolicy: Local
-
-cert-manager:
-  installCRDs: "true"
-  nodeSelector:
-    appNodes: "true"
