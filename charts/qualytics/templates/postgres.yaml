@@ -8,11 +8,13 @@ spec:
   accessModes:
     - ReadWriteOnce
   volumeMode: Filesystem
-  {{- if ( eq .Values.global.platform "aws" ) }}
+  {{- if and ( eq .Values.storageClass.create false ) (ne ( .Values.storageClass.name ) "") }}
+  storageClassName: {{ .Values.storageClass.name }}
+  {{- else if and ( eq .Values.storageClass.create true ) ( eq .Values.global.platform "aws" ) }}
   storageClassName: aws
-  {{- else if ( eq .Values.global.platform "gcp" ) }}
+  {{- else if and ( eq .Values.storageClass.create true ) ( eq .Values.global.platform "gcp" ) }}
   storageClassName: gcp-fast
-  {{- else if ( eq .Values.global.platform "azure" ) }}
+  {{- else if and ( eq .Values.storageClass.create true ) ( eq .Values.global.platform "azure" ) }}
   storageClassName: azure-fast
   {{- end }}
   resources:
