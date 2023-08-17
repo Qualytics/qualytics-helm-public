@@ -50,12 +50,15 @@ cert-manager:
 # Keep this for dns records and other specifics that are used across the entire app
 global:
   platform: "local"
-  tenant: "develop"
-  dnsRecord: "{{ .Values.global.tenant }}.qualytics.io"
+  dnsRecord: "changeme.qualytics.io"
   imageUrls:
     firewallImageUrl: "artifactory.qualytics.io:443/docker/firewall-prod"
     hubImageUrl: "artifactory.qualytics.io:443/docker/hub-prod"
     frontendImageUrl: "artifactory.qualytics.io:443/docker/frontend-prod"
+
+# Set this to false for creating storage classes
+storageClass:
+  create: false
 
 # Node scheduling
 tolerations:
@@ -101,6 +104,7 @@ firewall:
   sparkVersion: "3.4.1"
   eventLog: "false"
   useCache: "true"
+  volumes: true
   threadPoolParallelism: -1
   maxExecutors: 1
   numCoresPerExecutor: 1

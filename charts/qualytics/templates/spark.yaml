@@ -26,6 +26,7 @@ spec:
     spark.kubernetes.submission.requestTimeout: "480000"
     spark.kubernetes.driver.connectionTimeout: "480000"
     spark.kubernetes.driver.requestTimeout: "480000"
+  {{- if ( eq .Values.firewall.volumes true ) }}
   volumes:
     - name: "spark-local-dir-driver"
     {{- if ( eq .Values.global.platform "aws" ) }}
@@ -47,6 +48,7 @@ spec:
     {{- else }}
       emptyDir: {}
     {{- end }}
+  {{- end }}
   driver:
 {{- $resources := .Values.firewall -}}
     {{- with $resources.driver }}
@@ -132,11 +134,12 @@ spec:
     labels:
       version: {{ .Values.firewall.sparkVersion }}
     serviceAccount: {{ .Release.Name }}-spark
+    securityContext:
+      runAsUser: 185
+    {{- if ( eq .Values.firewall.volumes true ) }}
     volumeMounts:
       - name: "spark-local-dir-driver"
         mountPath: "/tmp/spark-local-dir"
-    securityContext:
-      runAsUser: 185
     initContainers:
     - name: init-spark-local-dir
       image: busybox
@@ -146,6 +149,7 @@ spec:
       volumeMounts:
       - name: "spark-local-dir-driver"
         mountPath: "/tmp/spark-local-dir"
+    {{- end }}
   dynamicAllocation:
     {{- with $resources.dynamicAllocation }}
     enabled: true
@@ -165,6 +169,8 @@ spec:
        -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
     labels:
       version: {{ .Values.firewall.sparkVersion }}
+    securityContext:
+      runAsUser: 185
     {{- if ( eq .Values.selectors.enabled true ) }}
     nodeSelector:
       sparkNodes: "true"
@@ -176,11 +182,10 @@ spec:
         value: "true"
         effect: NoSchedule
     {{- end }}
+    {{- if ( eq .Values.firewall.volumes true ) }}
     volumeMounts:
       - name: "spark-local-dir-executor"
         mountPath: "/tmp/spark-local-dir"
-    securityContext:
-      runAsUser: 185
     initContainers:
     - name: init-spark-local-dir
       image: busybox
@@ -190,3 +195,4 @@ spec:
       volumeMounts:
       - name: "spark-local-dir-executor"
         mountPath: "/tmp/spark-local-dir"
+    {{- end }}
