@@ -63,7 +63,8 @@ global:
 
 # Storage classes
 storageClass:
-  create: false
+  create: true
+  name: ""
 
 # Node scheduling
 tolerations:
@@ -109,7 +110,7 @@ firewall:
   sparkVersion: "3.4.1"
   eventLog: "false"
   useCache: "true"
-  volumes: true
+  useVolumes: true
   threadPoolParallelism: -1
   maxExecutors: 20
   numCoresPerExecutor: 7

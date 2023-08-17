@@ -26,7 +26,7 @@ spec:
     spark.kubernetes.submission.requestTimeout: "480000"
     spark.kubernetes.driver.connectionTimeout: "480000"
     spark.kubernetes.driver.requestTimeout: "480000"
-  {{- if ( eq .Values.firewall.volumes true ) }}
+  {{- if ( eq .Values.firewall.useVolumes true ) }}
   volumes:
     - name: "spark-local-dir-driver"
     {{- if ( eq .Values.global.platform "aws" ) }}
@@ -136,7 +136,7 @@ spec:
     serviceAccount: {{ .Release.Name }}-spark
     securityContext:
       runAsUser: 185
-    {{- if ( eq .Values.firewall.volumes true ) }}
+    {{- if ( eq .Values.firewall.useVolumes true ) }}
     volumeMounts:
       - name: "spark-local-dir-driver"
         mountPath: "/tmp/spark-local-dir"
@@ -182,7 +182,7 @@ spec:
         value: "true"
         effect: NoSchedule
     {{- end }}
-    {{- if ( eq .Values.firewall.volumes true ) }}
+    {{- if ( eq .Values.firewall.useVolumes true ) }}
     volumeMounts:
       - name: "spark-local-dir-executor"
         mountPath: "/tmp/spark-local-dir"
