@@ -6,6 +6,7 @@
 # Dependencies
 #--------------------------------------------------------------------------------
 spark-operator:
+  enabled: true
   webhook:
     enable: true
     port: 443
@@ -18,6 +19,7 @@ spark-operator:
   #     effect: NoSchedule
 
 ingress-nginx:
+  enabled: true
   controller:
     nodeSelector:
       appNodes: "true"
@@ -39,6 +41,7 @@ ingress-nginx:
       #   service.beta.kubernetes.io/aws-load-balancer-type: nlb
 
 cert-manager:
+  enabled: true
   installCRDs: "true"
   nodeSelector:
     appNodes: "true"
@@ -47,6 +50,14 @@ cert-manager:
   #     operator: Equal
   #     value: "true"
   #     effect: NoSchedule
+
+#--------------------------------------------------------------------------------
+# Ingress Nginx & Cert-manager
+#--------------------------------------------------------------------------------
+ingress:
+  enabled: true
+  certificates:
+    registeredEmail: "devops@qualytics.co"
 
 #--------------------------------------------------------------------------------
 # Global values
@@ -178,11 +189,3 @@ postgres:
   resources:
     memory: "14Gi"
     cpu: "3000m"
-
-#--------------------------------------------------------------------------------
-# Ingress Nginx & Cert-manager
-#--------------------------------------------------------------------------------
-ingress:
-  enabled: true
-  certificates:
-    registeredEmail: "devops@qualytics.co"
