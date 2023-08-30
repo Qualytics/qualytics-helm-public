@@ -86,13 +86,13 @@ selectors:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20230823-1d1a3f3"
+    firewallImageTag: "20230830-0b0cdf7"
 hubImage:
   image:
-    hubImageTag: "20230823-9b0e7e3"
+    hubImageTag: "20230830-dfbe14f"
 frontendImage:
   image:
-    frontendImageTag: "20230823-733b1c4"
+    frontendImageTag: "20230830-47d5e20"
 
 # The following secrets are required
 secrets:
@@ -125,7 +125,7 @@ firewall:
   threadPoolParallelism: -1
   maxExecutors: 20
   numCoresPerExecutor: 7
-  freeDiskPerExecutor: 300
+  maxMemoryPerExecutor: 64
   driver:
     cores: 7
     coreLimit: "7500m"

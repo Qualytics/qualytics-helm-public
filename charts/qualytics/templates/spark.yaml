@@ -129,8 +129,8 @@ spec:
         value: {{ .Values.firewall.maxExecutors | int | quote }}
       - name: MOTHERSHIP_NUM_CORES_PER_EXECUTOR
         value: {{ .Values.firewall.numCoresPerExecutor | int | quote  }}
-      - name: MOTHERSHIP_FREE_DISK_PER_EXECUTOR
-        value: {{ .Values.firewall.freeDiskPerExecutor | int | quote  }}
+      - name: MOTHERSHIP_MAX_MEMORY_PER_EXECUTOR
+        value: {{ .Values.firewall.maxMemoryPerExecutor | int | quote  }}
     labels:
       version: {{ .Values.firewall.sparkVersion }}
     serviceAccount: {{ .Release.Name }}-spark

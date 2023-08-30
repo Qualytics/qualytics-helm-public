@@ -120,7 +120,7 @@ firewall:
   threadPoolParallelism: -1
   maxExecutors: 1
   numCoresPerExecutor: 1
-  freeDiskPerExecutor: 50
+  maxMemoryPerExecutor: 10
   driver:
     cores: 1
     coreLimit: "1500m"
