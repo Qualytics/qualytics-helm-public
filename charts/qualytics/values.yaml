@@ -86,13 +86,13 @@ selectors:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20230831-97a9e6e"
+    firewallImageTag: "20230907-a68904c"
 hubImage:
   image:
-    hubImageTag: "20230831-2c8d73d"
+    hubImageTag: "20230907-42f933a"
 frontendImage:
   image:
-    frontendImageTag: "20230831-30f43d6"
+    frontendImageTag: "20230907-f37abf2"
 
 # The following secrets are required
 secrets:
@@ -157,8 +157,8 @@ hub:
 
 hubCmd:
   resources:
-    memory: "256Mi"
-    cpu: "300m"
+    memory: "512Mi"
+    cpu: "500m"
 
 hubUserKeys:
   enabled: true
@@ -172,8 +172,8 @@ frontend:
     path: "/?(.*)"
     servicePort: "8080"
   resources:
-    memory: "256Mi"
-    cpu: "200m"
+    memory: "512Mi"
+    cpu: "500m"
 
 #--------------------------------------------------------------------------------
 # Postgres
