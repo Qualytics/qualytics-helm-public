@@ -41,7 +41,7 @@ kubectl create secret docker-registry regcred --docker-server=artifactory.qualyt
 ```
 
 > [!IMPORTANT]
-> If you are unable to directly connect your cluster to our image repository for technical or compliance reasons, then you can instead import our images into your preferred registry using these same credentials. You'll need to update the image URLs in the values.yaml file in step #2 to point to your repository instead of ours.
+> If you are unable to directly connect your cluster to our image repository for technical or compliance reasons, then you can instead import our images into your preferred registry using these same credentials. You'll need to update the image URLs in the values.yaml file in the next step to point to your repository instead of ours.
 
 
 ### 2. Update values.yaml with appropriate values
