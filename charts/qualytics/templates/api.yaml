@@ -58,6 +58,13 @@ spec:
           {{- end }}
           - name: DATABASE_URL
             value: "postgresql+psycopg2://$(POSTGRES_CONNECTION_URL)"
+          {{- if ( eq .Values.hub.smtp.enabled true ) }}
+          - name: SMTP_SERVER
+            value: {{ .Values.hub.smtp.server | quote }}
+          - name: SMTP_PORT
+            value: {{ .Values.hub.smtp.port | quote }}
+          - name: SMTP_SENDER_EMAIL
+            value: {{ .Values.hub.smtp.sender | quote }}
           - name: SMTP_SENDER_USER
             valueFrom:
               secretKeyRef:
@@ -68,6 +75,7 @@ spec:
               secretKeyRef:
                 name: qualytics-creds
                 key: smtp_sender_password
+         {{- end }}
           - name: API_ROOT_PATH
             value: /api
           - name: API_ROOT_URL

@@ -86,13 +86,13 @@ selectors:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20230921-c68ebc6"
+    firewallImageTag: "20230929-8673e30"
 hubImage:
   image:
-    hubImageTag: "20230921-5d1e982"
+    hubImageTag: "20230929-179841c"
 frontendImage:
   image:
-    frontendImageTag: "20230921-27043df"
+    frontendImageTag: "20230929-e06b813"
 
 # The following secrets are required
 secrets:
@@ -154,11 +154,16 @@ hub:
   resources:
     memory: "4Gi"
     cpu: "1000m"
+  smtp:
+    enabled: true
+    server: "email-smtp.us-east-1.amazonaws.com"
+    sender: "no-reply@qualytics.co"
+    port: "465"
 
 hubCmd:
   resources:
-    memory: "512Mi"
-    cpu: "500m"
+    memory: "2Gi"
+    cpu: "1000m"
 
 hubUserKeys:
   enabled: true
@@ -173,7 +178,7 @@ frontend:
     servicePort: "8080"
   resources:
     memory: "512Mi"
-    cpu: "500m"
+    cpu: "200m"
 
 #--------------------------------------------------------------------------------
 # Postgres
