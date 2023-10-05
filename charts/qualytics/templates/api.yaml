@@ -158,37 +158,3 @@ spec:
       name: http
   selector:
     app: {{ .Release.Name }}-api
-
-{{- if ( eq .Values.ingress.enabled true ) }}
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: {{ .Release.Name }}-api-ingress
-  annotations:
-    helm.sh/hook: post-install,post-upgrade
-    helm.sh/hook-weight: "50"
-    cert-manager.io/cluster-issuer: 'letsencrypt'
-    nginx.ingress.kubernetes.io/proxy-redirect-from: 'http'
-    nginx.ingress.kubernetes.io/proxy-redirect-to: 'https'
-    nginx.ingress.kubernetes.io/use-regex: 'true'
-    nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
-    nginx.ingress.kubernetes.io/enable-cors: 'true'
-spec:
-  ingressClassName: nginx
-  tls:
-    - hosts:
-        - {{ tpl .Values.global.dnsRecord . | quote }}
-      secretName: api-tls-cert
-  rules:
-    - host: {{ tpl .Values.global.dnsRecord . | quote }}
-      http:
-        paths:
-          - path: {{ .Values.hub.ingress.path | quote }}
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ .Release.Name }}-api-service
-                port:
-                  number: {{ .Values.hub.ingress.servicePort }}
-{{- end }}
