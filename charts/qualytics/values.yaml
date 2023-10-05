@@ -10,6 +10,12 @@ spark-operator:
   webhook:
     enable: true
     port: 443
+    initAnnotations:
+      "helm.sh/hook": pre-install
+      "helm.sh/hook-weight": "50"
+    cleanupAnnotations:
+      "helm.sh/hook": pre-delete
+      "helm.sh/hook-delete-policy": hook-succeeded
   nodeSelector:
     appNodes: "true"
   # tolerations:
@@ -19,7 +25,7 @@ spark-operator:
   #     effect: NoSchedule
 
 ingress-nginx:
-  enabled: true
+  enabled: false
   controller:
     nodeSelector:
       appNodes: "true"
@@ -31,17 +37,19 @@ ingress-nginx:
     admissionWebhooks:
       enabled: true
       timeoutSeconds: 30
+    config:
+      allow-snippet-annotations: "true"
+      hsts-max-age: "31536000"
     service:
       type: LoadBalancer
       externalTrafficPolicy: Local
-      # aws specific
       # annotations:
       #   service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
       #   service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: 'true'
       #   service.beta.kubernetes.io/aws-load-balancer-type: nlb
 
 cert-manager:
-  enabled: true
+  enabled: false
   installCRDs: "true"
   nodeSelector:
     appNodes: "true"
@@ -56,6 +64,7 @@ cert-manager:
 #--------------------------------------------------------------------------------
 ingress:
   enabled: true
+  cors: false
   certificates:
     registeredEmail: "devops@qualytics.co"
 
@@ -74,7 +83,7 @@ global:
 
 # Storage classes
 storageClass:
-  create: true
+  create: false
   name: ""
 
 # Node scheduling
@@ -86,13 +95,13 @@ selectors:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20230929-8673e30"
+    firewallImageTag: "20231004-2916014"
 hubImage:
   image:
-    hubImageTag: "20230929-179841c"
+    hubImageTag: "20231004-2348947"
 frontendImage:
   image:
-    frontendImageTag: "20230929-e06b813"
+    frontendImageTag: "20231004-2ff660a"
 
 # The following secrets are required
 secrets:
