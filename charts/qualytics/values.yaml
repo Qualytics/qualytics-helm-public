@@ -63,7 +63,7 @@ cert-manager:
 # Ingress Nginx & Cert-manager
 #--------------------------------------------------------------------------------
 ingress:
-  enabled: true
+  enabled: false
   cors: false
   certificates:
     registeredEmail: "devops@qualytics.co"

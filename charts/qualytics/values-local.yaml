@@ -19,7 +19,7 @@ spark-operator:
   #     effect: NoSchedule
 
 ingress-nginx:
-  enabled: true
+  enabled: false
   controller:
     # nodeSelector:
     #   appNodes: "true"
@@ -36,7 +36,7 @@ ingress-nginx:
       externalTrafficPolicy: Local
 
 cert-manager:
-  enabled: true
+  enabled: false
   installCRDs: "true"
   # nodeSelector:
   #   appNodes: "true"
@@ -149,6 +149,11 @@ hub:
   resources:
     memory: "1Gi"
     cpu: "1000m"
+  smtp:
+    enabled: false
+    server: "email-smtp.us-east-1.amazonaws.com"
+    sender: "no-reply@qualytics.co"
+    port: "465"
 
 hubCmd:
   resources:
@@ -183,4 +188,16 @@ postgres:
     version: "14"
   resources:
     memory: "4Gi"
+    cpu: "1000m"
+
+#--------------------------------------------------------------------------------
+# RabbitMQ
+#--------------------------------------------------------------------------------
+rabbitmq:
+  pvc:
+    storageSize: "10Gi"
+  image:
+    version: "rabbitmq:3.12-management"
+  resources:
+    memory: "1Gi"
     cpu: "1000m"
