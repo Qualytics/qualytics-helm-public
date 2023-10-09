@@ -4,8 +4,6 @@ metadata:
   name: {{ .Release.Name }}-api
 spec:
   replicas: {{ .Values.hub.replicas }}
-  strategy:
-    type: Recreate
   selector:
     matchLabels:
       app: {{ .Release.Name }}-api
@@ -34,7 +32,7 @@ spec:
         command: ["/bin/bash","-c"]
         args: ["python /app/hub_api.py"]
         resources:
-          limits:
+          requests:
             {{- with .Values.hub.resources }}
             memory: {{ .memory }}
             cpu: {{ .cpu }}

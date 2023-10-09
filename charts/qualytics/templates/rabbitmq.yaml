@@ -127,6 +127,12 @@ spec:
           name: discovery
         - containerPort: 5672
           name: amqp
+        resources:
+          requests:
+            {{- with .Values.rabbitmq.resources }}
+            memory: {{ .memory }}
+            cpu: {{ .cpu }}
+            {{- end }}
         env:
         - name: RABBIT_POD_NAME
           valueFrom:

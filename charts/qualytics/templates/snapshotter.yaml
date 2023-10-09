@@ -64,6 +64,8 @@ spec:
               gzip -9 ./${ARCHIVE}
               mv ${ARCHIVE}.gz /mnt/data/postgres/${ARCHIVE}.gz
               ls /mnt/data/postgres/
+              # Remove backup files older than one month
+              find /mnt/data/postgres -name "pg_dump.*.sql.gz" -type f -mtime +30 -exec rm {} \;
             volumeMounts:
             - name: postgres-snapshots-volume
               mountPath: /mnt/data/postgres

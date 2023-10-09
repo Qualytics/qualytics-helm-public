@@ -95,7 +95,7 @@ spec:
           - name: PGDATA
             value: /mnt/data/pgdata
         resources:
-          limits:
+          requests:
             {{- with .Values.postgres.resources }}
             memory: {{ .memory }}
             cpu: {{ .cpu }}
