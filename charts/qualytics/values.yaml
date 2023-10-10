@@ -198,7 +198,7 @@ postgres:
     storageSize: "100Gi"
     backupVolumeStorageSize: "50Gi"
   image:
-    imageUrl: "postgres"
+    imageUrl: "artifactory.qualytics.io/docker/postgres"
     imageTag: "14"
   resources:
     memory: "12Gi"

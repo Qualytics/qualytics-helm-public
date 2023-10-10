@@ -10,8 +10,14 @@ spark-operator:
   webhook:
     enable: true
     port: 443
-  # nodeSelector:
-  #   appNodes: "true"
+    initAnnotations:
+      "helm.sh/hook": pre-install
+      "helm.sh/hook-weight": "50"
+    cleanupAnnotations:
+      "helm.sh/hook": pre-delete
+      "helm.sh/hook-delete-policy": hook-succeeded
+  nodeSelector:
+    appNodes: "true"
   # tolerations:
   #   - key: appNodes
   #     operator: Equal
@@ -185,7 +191,8 @@ postgres:
     storageSize: "10Gi"
     backupVolumeStorageSize: "5Gi"
   image:
-    version: "14"
+    imageUrl: "artifactory.qualytics.io/docker/postgres"
+    imageTag: "14"
   resources:
     memory: "4Gi"
     cpu: "1000m"
@@ -197,8 +204,8 @@ rabbitmq:
   pvc:
     storageSize: "10Gi"
   image:
-    imageUrl: "postgres"
-    imageTag: "14"
+    imageUrl: "artifactory.qualytics.io/docker/rabbitmq"
+    imageTag: "3.12-management"
   resources:
     memory: "1Gi"
     cpu: "1000m"
@@ -208,5 +215,5 @@ rabbitmq:
 #--------------------------------------------------------------------------------
 busybox:
   image:
-    imageUrl: "busybox"
+    imageUrl: "artifactory.qualytics.io/docker/busybox"
     imageTag: "latest"
