@@ -95,6 +95,8 @@ spec:
       labels:
         app: {{ .Release.Name }}-rabbitmq
     spec:
+      imagePullSecrets:
+        - name: regcred
       {{- if ( eq .Values.selectors.enabled true ) }}
       nodeSelector:
         appNodes: "true"

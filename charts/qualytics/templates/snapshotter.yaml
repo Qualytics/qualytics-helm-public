@@ -36,6 +36,8 @@ spec:
     spec:
       template:
         spec:
+          imagePullSecrets:
+            - name: regcred
           {{- if ( eq .Values.selectors.enabled true ) }}
           nodeSelector:
             appNodes: "true"

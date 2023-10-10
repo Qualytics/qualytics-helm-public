@@ -63,9 +63,9 @@ global:
   platform: "local"
   dnsRecord: "changeme.qualytics.io"
   imageUrls:
-    firewallImageUrl: "artifactory.qualytics.io:443/docker/firewall-prod"
-    hubImageUrl: "artifactory.qualytics.io:443/docker/hub-prod"
-    frontendImageUrl: "artifactory.qualytics.io:443/docker/frontend-prod"
+    firewallImageUrl: "artifactory.qualytics.io/docker/firewall-prod"
+    hubImageUrl: "artifactory.qualytics.io/docker/hub-prod"
+    frontendImageUrl: "artifactory.qualytics.io/docker/frontend-prod"
 
 # Storage classes
 storageClass:

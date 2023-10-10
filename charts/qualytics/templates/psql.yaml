@@ -13,6 +13,8 @@ spec:
       labels:
         app: psql-deployment
     spec:
+      imagePullSecrets:
+        - name: regcred
       {{- if ( eq .Values.selectors.enabled true ) }}
       nodeSelector:
         appNodes: "true"

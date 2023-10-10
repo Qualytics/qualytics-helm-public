@@ -77,9 +77,9 @@ global:
   platform: "aws"
   dnsRecord: "changeme.qualytics.io"
   imageUrls:
-    firewallImageUrl: "artifactory.qualytics.io:443/docker/firewall-prod"
-    hubImageUrl: "artifactory.qualytics.io:443/docker/hub-prod"
-    frontendImageUrl: "artifactory.qualytics.io:443/docker/frontend-prod"
+    firewallImageUrl: "artifactory.qualytics.io/docker/firewall-prod"
+    hubImageUrl: "artifactory.qualytics.io/docker/hub-prod"
+    frontendImageUrl: "artifactory.qualytics.io/docker/frontend-prod"
 
 # Storage classes
 storageClass:
@@ -211,7 +211,7 @@ rabbitmq:
   pvc:
     storageSize: "10Gi"
   image:
-    imageUrl: "rabbitmq"
+    imageUrl: "artifactory.qualytics.io/docker/rabbitmq"
     imageTag: "3.12-management"
   resources:
     memory: "1Gi"
@@ -222,5 +222,5 @@ rabbitmq:
 #--------------------------------------------------------------------------------
 busybox:
   image:
-    imageUrl: "busybox"
+    imageUrl: "artifactory.qualytics.io/docker/busybox"
     imageTag: "latest"
