@@ -66,7 +66,7 @@ The following command will first ensure that all chart dependencies are availble
 
 ```bash
 helm repo add qualytics https://qualytics.github.io/qualytics-helm-public
-helm install qualytics qualytics/qualytics --namespace qualytics --create-namespace
+helm upgrade --install qualytics qualytics/qualytics --namespace qualytics --create-namespace -f values.yaml
 ```
 
 As part of the install process, an nginx ingress will be configured with an inbound IP address. Make note of this IP address as it is needed for the fourth and final step!

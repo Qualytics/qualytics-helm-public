@@ -16,8 +16,8 @@ spark-operator:
     cleanupAnnotations:
       "helm.sh/hook": pre-delete
       "helm.sh/hook-delete-policy": hook-succeeded
-  nodeSelector:
-    appNodes: "true"
+  # nodeSelector:
+  #   appNodes: "true"
   # tolerations:
   #   - key: appNodes
   #     operator: Equal
@@ -75,7 +75,7 @@ global:
 
 # Storage classes
 storageClass:
-  create: true
+  create: false
   name: ""
 
 # Node scheduling
