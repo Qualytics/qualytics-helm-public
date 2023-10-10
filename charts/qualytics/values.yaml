@@ -63,7 +63,7 @@ cert-manager:
 # Ingress Nginx & Cert-manager
 #--------------------------------------------------------------------------------
 ingress:
-  enabled: true
+  enabled: false
   cors: false
   certificates:
     registeredEmail: "devops@qualytics.co"
@@ -77,9 +77,9 @@ global:
   platform: "aws"
   dnsRecord: "changeme.qualytics.io"
   imageUrls:
-    firewallImageUrl: "artifactory.qualytics.io:443/docker/firewall-prod"
-    hubImageUrl: "artifactory.qualytics.io:443/docker/hub-prod"
-    frontendImageUrl: "artifactory.qualytics.io:443/docker/frontend-prod"
+    firewallImageUrl: "artifactory.qualytics.io/docker/firewall-prod"
+    hubImageUrl: "artifactory.qualytics.io/docker/hub-prod"
+    frontendImageUrl: "artifactory.qualytics.io/docker/frontend-prod"
 
 # Storage classes
 storageClass:
@@ -95,13 +95,13 @@ selectors:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20231004-2916014"
+    firewallImageTag: "20231009-c8f1383"
 hubImage:
   image:
-    hubImageTag: "20231004-2348947"
+    hubImageTag: "20231009-19c0fdd"
 frontendImage:
   image:
-    frontendImageTag: "20231004-2ff660a"
+    frontendImageTag: "20231009-1e41253"
 
 # The following secrets are required
 secrets:
@@ -137,7 +137,7 @@ firewall:
   maxMemoryPerExecutor: 56000
   driver:
     cores: 7
-    coreLimit: "7500m"
+    coreLimit: "7800m"
     memory: "56000m"
   dynamicAllocation:
     enabled: true
@@ -149,7 +149,7 @@ firewall:
     # of .spec.dynamicAllocation.initialExecutors and .spec.executor.instances if both are set.
     instances: 1
     cores: 7
-    coreLimit: "7500m"
+    coreLimit: "7800m"
     memory: "56000m"
 
 #--------------------------------------------------------------------------------
@@ -161,8 +161,8 @@ hub:
     path: "/api/?(.*)"
     servicePort: "8000"
   resources:
-    memory: "4Gi"
-    cpu: "1000m"
+    memory: "2Gi"
+    cpu: "500m"
   smtp:
     enabled: true
     server: "email-smtp.us-east-1.amazonaws.com"
@@ -171,8 +171,8 @@ hub:
 
 hubCmd:
   resources:
-    memory: "2Gi"
-    cpu: "1000m"
+    memory: "1Gi"
+    cpu: "500m"
 
 hubUserKeys:
   enabled: true
@@ -186,20 +186,41 @@ frontend:
     path: "/?(.*)"
     servicePort: "8080"
   resources:
-    memory: "512Mi"
+    memory: "256Mi"
     cpu: "200m"
 
 #--------------------------------------------------------------------------------
 # Postgres
 #--------------------------------------------------------------------------------
-# Set values for cluster install of Postgres
 postgres:
   enabled: true
   pvc:
     storageSize: "100Gi"
     backupVolumeStorageSize: "50Gi"
   image:
-    version: "14"
+    imageUrl: "artifactory.qualytics.io/docker/postgres"
+    imageTag: "14"
   resources:
-    memory: "14Gi"
-    cpu: "3000m"
+    memory: "12Gi"
+    cpu: "2000m"
+
+#--------------------------------------------------------------------------------
+# RabbitMQ
+#--------------------------------------------------------------------------------
+rabbitmq:
+  pvc:
+    storageSize: "10Gi"
+  image:
+    imageUrl: "artifactory.qualytics.io/docker/rabbitmq"
+    imageTag: "3.12-management"
+  resources:
+    memory: "1Gi"
+    cpu: "1000m"
+
+#--------------------------------------------------------------------------------
+# Busybox
+#--------------------------------------------------------------------------------
+busybox:
+  image:
+    imageUrl: "artifactory.qualytics.io/docker/busybox"
+    imageTag: "latest"

@@ -19,8 +19,8 @@ Qualytics fully supports kubernetes clusters hosted in AWS, GCP, and Azure as we
 #### Node Requirements
 
 Node(s) with the following labels must be made available:
-- appNodes
-- sparkNodes
+- `appNodes=true`
+- `sparkNodes=true`
 
 Nodes with the `sparkNodes=true` label will be used for Spark jobs and nodes with the `appNodes=true` label will be used for all other needs.  It is possible to provide a single node with both labels if that node provides sufficient resources to operate the entire cluster according to the specified chart values.  However, it is highly recommended to setup autoscaling for Apache Spark operations by providing a group of nodes with the `sparkNodes=true` label that will grow on demand.
 
@@ -37,7 +37,7 @@ Nodes with the `sparkNodes=true` label will be used for Spark jobs and nodes wit
 Execute the command below using the credentials supplied by your account manager as replacements for "your-name" and "your-pword". The secret created will provide access to Qualytics private registry and the required images that are available there.
 
 ```bash
-kubectl create secret docker-registry regcred --docker-server=artifactory.qualytics.io:443/docker --docker-username=<your-name> --docker-password=<your-pword>
+kubectl create secret docker-registry regcred --docker-server=artifactory.qualytics.io/docker --docker-username=<your-name> --docker-password=<your-pword>
 ```
 
 > [!IMPORTANT]
@@ -66,7 +66,7 @@ The following command will first ensure that all chart dependencies are availble
 
 ```bash
 helm repo add qualytics https://qualytics.github.io/qualytics-helm-public
-helm install qualytics qualytics/qualytics --namespace qualytics --create-namespace
+helm upgrade --install qualytics qualytics/qualytics --namespace qualytics --create-namespace -f values.yaml
 ```
 
 As part of the install process, an nginx ingress will be configured with an inbound IP address. Make note of this IP address as it is needed for the fourth and final step!

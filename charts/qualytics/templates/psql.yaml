@@ -13,6 +13,8 @@ spec:
       labels:
         app: psql-deployment
     spec:
+      imagePullSecrets:
+        - name: regcred
       {{- if ( eq .Values.selectors.enabled true ) }}
       nodeSelector:
         appNodes: "true"
@@ -26,7 +28,7 @@ spec:
       {{- end }}
       containers:
         - name: psql-deployment
-          image: {{ printf "postgres:%s" .Values.postgres.image.version }}
+          image: "{{ tpl .Values.postgres.image.imageUrl . }}:{{ .Values.postgres.image.imageTag }}"
           imagePullPolicy: IfNotPresent
           command:
             - /bin/bash
@@ -37,7 +39,7 @@ spec:
             - name: postgres-snapshots-pvc
               mountPath: /mnt/postgres/data
           resources:
-            limits:
+            requests:
               memory: 100Mi
               cpu: 100m
       restartPolicy: Always

@@ -10,6 +10,12 @@ spark-operator:
   webhook:
     enable: true
     port: 443
+    initAnnotations:
+      "helm.sh/hook": pre-install
+      "helm.sh/hook-weight": "50"
+    cleanupAnnotations:
+      "helm.sh/hook": pre-delete
+      "helm.sh/hook-delete-policy": hook-succeeded
   # nodeSelector:
   #   appNodes: "true"
   # tolerations:
@@ -19,7 +25,7 @@ spark-operator:
   #     effect: NoSchedule
 
 ingress-nginx:
-  enabled: true
+  enabled: false
   controller:
     # nodeSelector:
     #   appNodes: "true"
@@ -36,7 +42,7 @@ ingress-nginx:
       externalTrafficPolicy: Local
 
 cert-manager:
-  enabled: true
+  enabled: false
   installCRDs: "true"
   # nodeSelector:
   #   appNodes: "true"
@@ -63,13 +69,13 @@ global:
   platform: "local"
   dnsRecord: "changeme.qualytics.io"
   imageUrls:
-    firewallImageUrl: "artifactory.qualytics.io:443/docker/firewall-prod"
-    hubImageUrl: "artifactory.qualytics.io:443/docker/hub-prod"
-    frontendImageUrl: "artifactory.qualytics.io:443/docker/frontend-prod"
+    firewallImageUrl: "artifactory.qualytics.io/docker/firewall-prod"
+    hubImageUrl: "artifactory.qualytics.io/docker/hub-prod"
+    frontendImageUrl: "artifactory.qualytics.io/docker/frontend-prod"
 
 # Storage classes
 storageClass:
-  create: true
+  create: false
   name: ""
 
 # Node scheduling
@@ -149,6 +155,11 @@ hub:
   resources:
     memory: "1Gi"
     cpu: "1000m"
+  smtp:
+    enabled: false
+    server: "email-smtp.us-east-1.amazonaws.com"
+    sender: "no-reply@qualytics.co"
+    port: "465"
 
 hubCmd:
   resources:
@@ -180,7 +191,29 @@ postgres:
     storageSize: "10Gi"
     backupVolumeStorageSize: "5Gi"
   image:
-    version: "14"
+    imageUrl: "artifactory.qualytics.io/docker/postgres"
+    imageTag: "14"
   resources:
     memory: "4Gi"
     cpu: "1000m"
+
+#--------------------------------------------------------------------------------
+# RabbitMQ
+#--------------------------------------------------------------------------------
+rabbitmq:
+  pvc:
+    storageSize: "10Gi"
+  image:
+    imageUrl: "artifactory.qualytics.io/docker/rabbitmq"
+    imageTag: "3.12-management"
+  resources:
+    memory: "1Gi"
+    cpu: "1000m"
+
+#--------------------------------------------------------------------------------
+# Busybox
+#--------------------------------------------------------------------------------
+busybox:
+  image:
+    imageUrl: "artifactory.qualytics.io/docker/busybox"
+    imageTag: "latest"

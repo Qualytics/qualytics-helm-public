@@ -4,8 +4,6 @@ metadata:
   name: {{ .Release.Name }}-cmd
 spec:
   replicas: 1
-  strategy:
-    type: Recreate
   selector:
     matchLabels:
       app: {{ .Release.Name }}-cmd
@@ -34,7 +32,7 @@ spec:
         command: [ "/bin/bash","-c" ]
         args: [ "python /app/hub_cmd.py" ]
         resources:
-          limits:
+          requests:
             memory: {{ .Values.hubCmd.resources.memory | quote }}
             cpu: {{ .Values.hubCmd.resources.cpu| quote }}
         env:

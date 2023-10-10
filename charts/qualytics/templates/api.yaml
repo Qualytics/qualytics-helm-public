@@ -4,8 +4,6 @@ metadata:
   name: {{ .Release.Name }}-api
 spec:
   replicas: {{ .Values.hub.replicas }}
-  strategy:
-    type: Recreate
   selector:
     matchLabels:
       app: {{ .Release.Name }}-api
@@ -29,12 +27,12 @@ spec:
       {{- end }}
       containers:
       - name: api
-        image: "{{ tpl .Values.global.imageUrls.hubImageUrl . }}:{{ .Values.hubImage.image.hubImageTag | toString }}"
+        image: "{{ tpl .Values.global.imageUrls.hubImageUrl . }}:{{ .Values.hubImage.image.hubImageTag }}"
         imagePullPolicy: IfNotPresent
         command: ["/bin/bash","-c"]
         args: ["python /app/hub_api.py"]
         resources:
-          limits:
+          requests:
             {{- with .Values.hub.resources }}
             memory: {{ .memory }}
             cpu: {{ .cpu }}

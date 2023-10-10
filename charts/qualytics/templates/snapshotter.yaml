@@ -36,6 +36,8 @@ spec:
     spec:
       template:
         spec:
+          imagePullSecrets:
+            - name: regcred
           {{- if ( eq .Values.selectors.enabled true ) }}
           nodeSelector:
             appNodes: "true"
@@ -52,7 +54,7 @@ spec:
             env:
               - name: URL
                 value: postgresql://postgres:postgres@{{ .Release.Name }}-postgres.{{ .Release.Namespace }}.svc.cluster.local:5432/surveillance_hub
-            image: {{ printf "postgres:%s" .Values.postgres.image.version }}
+            image: "{{ tpl .Values.postgres.image.imageUrl . }}:{{ .Values.postgres.image.imageTag }}"
             imagePullPolicy: IfNotPresent
             command:
             - "/bin/sh"
@@ -64,6 +66,8 @@ spec:
               gzip -9 ./${ARCHIVE}
               mv ${ARCHIVE}.gz /mnt/data/postgres/${ARCHIVE}.gz
               ls /mnt/data/postgres/
+              # Remove backup files older than one month
+              find /mnt/data/postgres -name "pg_dump.*.sql.gz" -type f -mtime +30 -exec rm {} \;
             volumeMounts:
             - name: postgres-snapshots-volume
               mountPath: /mnt/data/postgres
