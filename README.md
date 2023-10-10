@@ -19,8 +19,8 @@ Qualytics fully supports kubernetes clusters hosted in AWS, GCP, and Azure as we
 #### Node Requirements
 
 Node(s) with the following labels must be made available:
-- appNodes
-- sparkNodes
+- `appNodes=true`
+- `sparkNodes=true`
 
 Nodes with the `sparkNodes=true` label will be used for Spark jobs and nodes with the `appNodes=true` label will be used for all other needs.  It is possible to provide a single node with both labels if that node provides sufficient resources to operate the entire cluster according to the specified chart values.  However, it is highly recommended to setup autoscaling for Apache Spark operations by providing a group of nodes with the `sparkNodes=true` label that will grow on demand.
 
