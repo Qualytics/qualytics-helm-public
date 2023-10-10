@@ -26,7 +26,7 @@ spec:
       {{- end }}
       containers:
         - name: psql-deployment
-          image: {{ printf "postgres:%s" .Values.postgres.image.version }}
+          image: "{{ tpl .Values.postgres.image.imageUrl . }}:{{ .Values.postgres.image.imageTag }}"
           imagePullPolicy: IfNotPresent
           command:
             - /bin/bash

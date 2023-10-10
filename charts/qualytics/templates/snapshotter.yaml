@@ -52,7 +52,7 @@ spec:
             env:
               - name: URL
                 value: postgresql://postgres:postgres@{{ .Release.Name }}-postgres.{{ .Release.Namespace }}.svc.cluster.local:5432/surveillance_hub
-            image: {{ printf "postgres:%s" .Values.postgres.image.version }}
+            image: "{{ tpl .Values.postgres.image.imageUrl . }}:{{ .Values.postgres.image.imageTag }}"
             imagePullPolicy: IfNotPresent
             command:
             - "/bin/sh"

@@ -83,7 +83,8 @@ spec:
           - log_statement=all
           - -c
           - log_destination=stderr
-        image: {{ printf "postgres:%s" .Values.postgres.image.version }}
+        image: "{{ tpl .Values.postgres.image.imageUrl . }}:{{ .Values.postgres.image.imageTag }}"
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5432
           name: postgres

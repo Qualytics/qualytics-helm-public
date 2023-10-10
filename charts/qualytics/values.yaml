@@ -192,14 +192,14 @@ frontend:
 #--------------------------------------------------------------------------------
 # Postgres
 #--------------------------------------------------------------------------------
-# Set values for cluster install of Postgres
 postgres:
   enabled: true
   pvc:
     storageSize: "100Gi"
     backupVolumeStorageSize: "50Gi"
   image:
-    version: "14"
+    imageUrl: "postgres"
+    imageTag: "14"
   resources:
     memory: "12Gi"
     cpu: "2000m"
@@ -211,7 +211,16 @@ rabbitmq:
   pvc:
     storageSize: "10Gi"
   image:
-    version: "rabbitmq:3.12-management"
+    imageUrl: "rabbitmq"
+    imageTag: "3.12-management"
   resources:
     memory: "1Gi"
     cpu: "1000m"
+
+#--------------------------------------------------------------------------------
+# Busybox
+#--------------------------------------------------------------------------------
+busybox:
+  image:
+    imageUrl: "busybox"
+    imageTag: "latest"

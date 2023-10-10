@@ -109,7 +109,8 @@ spec:
       serviceAccountName: {{ .Release.Name }}-rabbitmq
       initContainers:
       - name: config
-        image: busybox
+        image: "{{ tpl .Values.busybox.image.imageUrl . }}:{{ .Values.busybox.image.imageTag }}"
+        imagePullPolicy: IfNotPresent
         command: ['/bin/sh', '-c', 'cp /tmp/config/rabbitmq.conf /config/rabbitmq.conf && ls -l /config/ && cp /tmp/config/enabled_plugins /etc/rabbitmq/enabled_plugins']
         volumeMounts:
         - name: config
@@ -121,7 +122,8 @@ spec:
           mountPath: /etc/rabbitmq/
       containers:
       - name: rabbitmq
-        image: rabbitmq:3.12-management
+        image: "{{ tpl .Values.rabbitmq.image.imageUrl . }}:{{ .Values.rabbitmq.image.imageTag }}"
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 15672
           name: discovery
