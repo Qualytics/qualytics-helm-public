@@ -75,6 +75,10 @@ As part of the install process, an nginx ingress will be configured with an inbo
 
 Send your [account manager](mailto://hello@qualytics.co) the IP address for your cluster ingress gathered from step 3. Qualytics will assign a DNS record to it under `*.qualytics.io` so that your end users can securely access the deployed web application from a URL such as `https://acme.qualytics.io`
 
+## Can I run a fully "air-gapped" deployemnt?
+
+Yes. The only egress requirement for a standard self-hosted Qualytics' deployment is to https://auth.qualytics.io which provides Okta Auth0 federated authentication. This is recommended for ease of installation and support, but not a strict requirement. If you have need of a fully private deployment with no access to the public internet, we can assist you. Simply contact your Qualytics account manager for more details.
+
 ## Additional Documentation
 
 - [Qualytics UserGuide](https://qualytics.github.io/userguide/)
