@@ -135,6 +135,7 @@ firewall:
   maxExecutors: 20
   numCoresPerExecutor: 7
   maxMemoryPerExecutor: 56000
+  libpostalDataPath: "/libpostal_data"
   driver:
     cores: 7
     coreLimit: "7800m"

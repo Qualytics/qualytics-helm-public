@@ -71,6 +71,7 @@ spec:
       "-Divy.cache.dir=/tmp
        -Divy.home=/tmp
        -Dlog4j.configuration=file:/opt/spark/log4j.properties
+       -Djava.library.path=/opt/spark/libs/
        -Dconfig.resource=prod.conf
        -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
 #--------------------------------------------------------------------------------
@@ -112,6 +113,8 @@ spec:
         value: {{ .Values.firewall.numCoresPerExecutor | int | quote  }}
       - name: MOTHERSHIP_MAX_MEMORY_PER_EXECUTOR
         value: {{ .Values.firewall.maxMemoryPerExecutor | int | quote  }}
+      - name: MOTHERSHIP_LIBPOSTAL_DATA_PATH
+        value: {{ .Values.firewall.libpostalDataPath | quote  }}
     labels:
       version: {{ .Values.firewall.sparkVersion }}
     serviceAccount: {{ .Release.Name }}-spark
@@ -148,6 +151,7 @@ spec:
     {{- end }}
     javaOptions:
       "-Dlog4j.configuration=file:/opt/spark/log4j.properties
+       -Djava.library.path=/opt/spark/libs/
        -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
     labels:
       version: {{ .Values.firewall.sparkVersion }}
