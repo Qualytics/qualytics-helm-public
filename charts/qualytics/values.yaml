@@ -95,13 +95,13 @@ selectors:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20231013-e6417cc"
+    firewallImageTag: "20231023-2bb47e9"
 hubImage:
   image:
-    hubImageTag: "20231013-c66630a"
+    hubImageTag: "20231023-e3951e5"
 frontendImage:
   image:
-    frontendImageTag: "20231013-6833a42"
+    frontendImageTag: "20231023-0437ec2"
 
 # The following secrets are required
 secrets:
@@ -127,7 +127,7 @@ secrets:
 # Firewall configuration
 #--------------------------------------------------------------------------------
 firewall:
-  sparkVersion: "3.4.1"
+  sparkVersion: "3.5.0"
   eventLog: "false"
   useCache: "true"
   useVolumes: true

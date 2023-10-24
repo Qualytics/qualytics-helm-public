@@ -119,7 +119,7 @@ secrets:
 # Firewall configuration
 #--------------------------------------------------------------------------------
 firewall:
-  sparkVersion: "3.4.1"
+  sparkVersion: "3.5.0"
   eventLog: "false"
   useCache: "true"
   useVolumes: false
