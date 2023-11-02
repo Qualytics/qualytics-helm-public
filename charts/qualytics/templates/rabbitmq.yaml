@@ -15,6 +15,7 @@ data:
     cluster_formation.node_cleanup.only_log_warning = true
     cluster_formation.node_cleanup.interval = 30
     cluster_partition_handling = autoheal
+    consumer_timeout = 3600000 # 60 minutes in milliseconds
 
 ---
 apiVersion: v1
