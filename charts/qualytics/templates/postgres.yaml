@@ -74,15 +74,15 @@ spec:
       - name: postgres
         args:
           - -c
-          - max_connections=10000
+          - max_connections=1000  # Adjust based on expected workload
           - -c
-          - shared_buffers=4GB
+          - shared_buffers=4GB  # Set to 25% of total memory, adjust as needed
           - -c
-          - maintenance_work_mem=1GB
+          - maintenance_work_mem=1GB  # Adjust based on your maintenance needs
           - -c
-          - work_mem=512MB
+          - work_mem=512MB  # Adjust so that max_connections * work_mem is well below total memory
           - -c
-          - log_statement=all
+          - effective_cache_size=9GB  # Adjust to about 75% of total memory
           - -c
           - log_destination=stderr
         image: "{{ tpl .Values.postgres.image.imageUrl . }}:{{ .Values.postgres.image.imageTag }}"

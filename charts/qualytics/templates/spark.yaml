@@ -72,6 +72,7 @@ spec:
        -Divy.home=/tmp
        -Dlog4j.configuration=file:/opt/spark/log4j.properties
        -Dconfig.resource=prod.conf
+       -Djava.library.path=/opt/spark/libs/
        -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
 #--------------------------------------------------------------------------------
 # Environments that require a proxy (Http, Socks, etc..) for egress
@@ -112,6 +113,8 @@ spec:
         value: {{ .Values.firewall.numCoresPerExecutor | int | quote  }}
       - name: MOTHERSHIP_MAX_MEMORY_PER_EXECUTOR
         value: {{ .Values.firewall.maxMemoryPerExecutor | int | quote  }}
+      - name: MOTHERSHIP_LIBPOSTAL_DATA_PATH
+        value: {{ .Values.firewall.libpostalDataPath | quote  }}
     labels:
       version: {{ .Values.firewall.sparkVersion }}
     serviceAccount: {{ .Release.Name }}-spark
@@ -147,7 +150,7 @@ spec:
     memory: {{ .memory }}
     {{- end }}
     javaOptions:
-      "-Dlog4j.configuration=file:/opt/spark/log4j.properties
+      "-Dlog4j.configuration=file:/opt/spark/log4j.properties -Djava.library.path=/opt/spark/libs/
        -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
     labels:
       version: {{ .Values.firewall.sparkVersion }}

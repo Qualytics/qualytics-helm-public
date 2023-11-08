@@ -95,13 +95,13 @@ selectors:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20231102-b85eeb2"
+    firewallImageTag: "20231108-7e135ad"
 hubImage:
   image:
-    hubImageTag: "20231102-a26a04e"
+    hubImageTag: "20231108-d950bab"
 frontendImage:
   image:
-    frontendImageTag: "20231102-c1c0bb2"
+    frontendImageTag: "20231108-67c0441"
 
 # The following secrets are required
 secrets:
@@ -135,6 +135,7 @@ firewall:
   maxExecutors: 20
   numCoresPerExecutor: 7
   maxMemoryPerExecutor: 56000
+  libpostalDataPath: "/opt/libpostal"
   driver:
     cores: 7
     coreLimit: "7800m"
