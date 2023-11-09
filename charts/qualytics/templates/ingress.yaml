@@ -12,6 +12,29 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-redirect-to: 'https'
     nginx.ingress.kubernetes.io/use-regex: 'true'
     nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
+    nginx.ingress.kubernetes.io/enable-modsecurity: 'true'
+    nginx.ingress.kubernetes.io/modsecurity-snippet: |
+      Include /etc/nginx/owasp-modsecurity-crs/nginx-modsecurity.conf
+      # Enable prevention mode. Can be any of: DetectionOnly,On,Off (default is DetectionOnly)
+      SecRuleEngine On
+      SecRequestBodyAccess On
+      # Enable JSON parsing
+      SecRule REQUEST_HEADERS:Content-Type "application/json" \
+          "id:'200001',phase:1,t:none,t:lowercase,pass,nolog,\
+          ctl:requestBodyProcessor=JSON"
+      # Max request sizes in bytes (with/without files)
+      # Note NGINX Ingress has its own annotations, keep in sync!
+      SecRequestBodyLimit 20971520 # 20Mb
+      SecRequestBodyNoFilesLimit 2621440 # 2.6Mb
+      SecRequestBodyLimitAction Reject
+      # Update config to include PUT/PATCH/DELETE in the allowed HTTP methods
+      SecAction "id:900200,phase:1,nolog,pass,t:none,\
+        setvar:tx.allowed_methods=GET HEAD POST OPTIONS PUT PATCH DELETE"
+      # Send ModSecurity audit logs to the stdout (only for rejected requests)
+      SecAuditLog /dev/stdout
+      SecAuditLogParts ABCIJDEFHZ
+      SecAuditLogFormat JSON
+      SecAuditEngine RelevantOnly # could be On/Off/RelevantOnly
 {{- if ( eq .Values.ingress.cors true ) }}
     nginx.ingress.kubernetes.io/enable-cors: 'true'
     nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, PATCH, OPTIONS, HEAD, DELETE"
@@ -54,6 +77,22 @@ metadata:
     nginx.ingress.kubernetes.io/use-regex: 'true'
     nginx.ingress.kubernetes.io/rewrite-target: /$1
     nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
+    nginx.ingress.kubernetes.io/enable-modsecurity: 'true'
+    nginx.ingress.kubernetes.io/modsecurity-snippet: |
+      Include /etc/nginx/owasp-modsecurity-crs/nginx-modsecurity.conf
+      # Enable prevention mode. Can be any of: DetectionOnly,On,Off (default is DetectionOnly)
+      SecRuleEngine On
+      SecRequestBodyAccess On
+      # Enable JSON parsing
+      SecRule REQUEST_HEADERS:Content-Type "application/json" \
+          "id:'200001',phase:1,t:none,t:lowercase,pass,nolog,\
+          ctl:requestBodyProcessor=JSON"
+      SecRequestBodyLimitAction Reject
+      # Send ModSecurity audit logs to the stdout (only for rejected requests)
+      SecAuditLog /dev/stdout
+      SecAuditLogParts ABCIJDEFHZ
+      SecAuditLogFormat JSON
+      SecAuditEngine RelevantOnly # could be On/Off/RelevantOnly
     nginx.ingress.kubernetes.io/proxy-redirect-from: 'http'
     nginx.ingress.kubernetes.io/proxy-redirect-to: 'https'
     nginx.ingress.kubernetes.io/configuration-snippet: |
