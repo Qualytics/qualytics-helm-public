@@ -17,11 +17,7 @@ metadata:
       Include /etc/nginx/owasp-modsecurity-crs/nginx-modsecurity.conf
       # Enable prevention mode. Can be any of: DetectionOnly,On,Off (default is DetectionOnly)
       SecRuleEngine On
-      SecRequestBodyAccess On
-      # Enable JSON parsing
-      SecRule REQUEST_HEADERS:Content-Type "application/json" \
-          "id:'200001',phase:1,t:none,t:lowercase,pass,nolog,\
-          ctl:requestBodyProcessor=JSON"
+      SecRequestBodyAccess On      
       # Max request sizes in bytes (with/without files)
       # Note NGINX Ingress has its own annotations, keep in sync!
       SecRequestBodyLimit 20971520 # 20Mb
@@ -82,11 +78,7 @@ metadata:
       Include /etc/nginx/owasp-modsecurity-crs/nginx-modsecurity.conf
       # Enable prevention mode. Can be any of: DetectionOnly,On,Off (default is DetectionOnly)
       SecRuleEngine On
-      SecRequestBodyAccess On
-      # Enable JSON parsing
-      SecRule REQUEST_HEADERS:Content-Type "application/json" \
-          "id:'200001',phase:1,t:none,t:lowercase,pass,nolog,\
-          ctl:requestBodyProcessor=JSON"
+      SecRequestBodyAccess On      
       SecRequestBodyLimitAction Reject
       # Send ModSecurity audit logs to the stdout (only for rejected requests)
       SecAuditLog /dev/stdout
