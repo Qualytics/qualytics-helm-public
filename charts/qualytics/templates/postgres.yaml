@@ -83,6 +83,8 @@ spec:
           - work_mem=512MB  # Adjust so that max_connections * work_mem is well below total memory
           - -c
           - effective_cache_size=9GB  # Adjust to about 75% of total memory
+          - '-c'
+          - jit=off
           - -c
           - log_destination=stderr
         image: "{{ tpl .Values.postgres.image.imageUrl . }}:{{ .Values.postgres.image.imageTag }}"
