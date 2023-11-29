@@ -31,7 +31,8 @@ metadata:
       SecAuditLogParts ABCIJDEFHZ
       SecAuditLogFormat JSON
       SecAuditEngine RelevantOnly # could be On/Off/RelevantOnly
-
+      # SC-14854
+      SecRule REQUEST_URI "@rx ^.*/\?(/\?)+$" "id:14854,phase:2,deny,status:403"
 {{- if ( eq .Values.ingress.cors true ) }}
     nginx.ingress.kubernetes.io/enable-cors: 'true'
     nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, PATCH, OPTIONS, HEAD, DELETE"
@@ -87,6 +88,8 @@ metadata:
       SecAuditLogParts ABCIJDEFHZ
       SecAuditLogFormat JSON
       SecAuditEngine RelevantOnly # could be On/Off/RelevantOnly
+      # SC-14854
+      SecRule REQUEST_URI "@rx ^.*/\?(/\?)+$" "id:14854,phase:2,deny,status:403"
     nginx.ingress.kubernetes.io/proxy-redirect-from: 'http'
     nginx.ingress.kubernetes.io/proxy-redirect-to: 'https'
     cert-manager.io/cluster-issuer: "letsencrypt"
