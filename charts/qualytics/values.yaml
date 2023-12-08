@@ -95,13 +95,13 @@ selectors:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20231205-59bb3b0"
+    firewallImageTag: "20231208-b97c3a3"
 hubImage:
   image:
-    hubImageTag: "20231205-fe0dfa8"
+    hubImageTag: "20231208-cf5a402"
 frontendImage:
   image:
-    frontendImageTag: "20231205-929ac35"
+    frontendImageTag: "20231208-84ad29f"
 
 # The following secrets are required
 secrets:

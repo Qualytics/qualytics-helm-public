@@ -31,7 +31,7 @@ metadata:
       SecAuditLogParts ABCIJDEFHZ
       SecAuditLogFormat JSON
       SecAuditEngine RelevantOnly # could be On/Off/RelevantOnly
-      # SC-14854
+      # addresses SC-14854
       SecRule REQUEST_URI "@rx ^.*/\?(/\?)+$" "id:14854,phase:2,deny,status:403"
 {{- if ( eq .Values.ingress.cors true ) }}
     nginx.ingress.kubernetes.io/enable-cors: 'true'
@@ -44,7 +44,9 @@ metadata:
     nginx.ingress.kubernetes.io/configuration-snippet: |
       add_header X-Frame-Options "sameorigin";
       add_header X-Content-Type-Options nosniff;
-      add_header Referrer-Policy 'same-origin';
+      add_header Referrer-Policy 'same-origin';      
+      add_header Content-Security-Policy "default-src https: 'unsafe-eval' 'unsafe-inline'";
+      add_header Permissions-Policy 'autoplay=(self), cross-origin-isolated=(self), display-capture=(self), encrypted-media=(self), fullscreen=(self), keyboard-map=(self), picture-in-picture=(self), publickey-credentials-get=(self), screen-wake-lock=(self), sync-xhr=(self)';
       more_set_headers "X-Xss-Protection: 1; mode=block";
 
 spec:
@@ -88,7 +90,7 @@ metadata:
       SecAuditLogParts ABCIJDEFHZ
       SecAuditLogFormat JSON
       SecAuditEngine RelevantOnly # could be On/Off/RelevantOnly
-      # SC-14854
+      # addresses SC-14854
       SecRule REQUEST_URI "@rx ^.*/\?(/\?)+$" "id:14854,phase:2,deny,status:403"
     nginx.ingress.kubernetes.io/proxy-redirect-from: 'http'
     nginx.ingress.kubernetes.io/proxy-redirect-to: 'https'
@@ -97,6 +99,8 @@ metadata:
       add_header X-Frame-Options "sameorigin";
       add_header X-Content-Type-Options nosniff;
       add_header Referrer-Policy 'same-origin';
+      add_header Content-Security-Policy "default-src https: 'unsafe-eval' 'unsafe-inline'";
+      add_header Permissions-Policy 'autoplay=(self), cross-origin-isolated=(self), display-capture=(self), encrypted-media=(self), fullscreen=(self), keyboard-map=(self), picture-in-picture=(self), publickey-credentials-get=(self), screen-wake-lock=(self), sync-xhr=(self)';
       more_set_headers "X-Xss-Protection: 1; mode=block";
 
 spec:
