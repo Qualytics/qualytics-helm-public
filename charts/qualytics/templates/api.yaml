@@ -78,13 +78,99 @@ spec:
             value: /api
           - name: API_ROOT_URL
             value: {{ printf "http://%s-api-service:8000$(API_ROOT_PATH)" .Release.Name }}
-          - name: AUTH0_DOMAIN
-            value: {{ .Values.secrets.auth0.auth0_domain | quote }}
           - name: SECRETS_PASSPHRASE
             valueFrom:
               secretKeyRef:
                 name: qualytics-creds
                 key: secrets_passphrase
+          {{- if ( eq .Values.hub.authType "OIDC" ) }}
+          - name: API_AUTH
+            value: OIDC
+          - name: OIDC_JWT_SIGNING_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_jwt_signing_secret
+          - name: OIDC_INTERNAL_API_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_internal_api_secret
+          - name: OIDC_ADMIN_API_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_admin_api_secret
+          - name: OIDC_SCOPES
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_scopes
+          - name: OIDC_AUTHORIZATION_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_authorization_endpoint
+          - name: OIDC_TOKEN_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_token_endpoint
+          - name: OIDC_USERINFO_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_userinfo_endpoint
+          - name: OIDC_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_client_id
+          - name: OIDC_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_client_secret
+          - name: OIDC_USER_ID_KEY
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_user_id_key
+          - name: OIDC_USER_EMAIL_KEY
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_user_email_key
+          - name: OIDC_USER_NAME_KEY
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_user_name_key
+          - name: OIDC_USER_FNAME_KEY
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_user_fname_key
+          - name: OIDC_USER_LNAME_KEY
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_user_lname_key
+          - name: OIDC_USER_PICTURE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_user_picture_key
+          - name: OIDC_USER_PROVIDER_KEY
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_user_provider_key
+          {{- else }}
+          - name: API_AUTH
+            value: AUTH0
+          - name: AUTH0_DOMAIN
+            value: {{ .Values.secrets.auth0.auth0_domain | quote }}
           - name: AUTH0_CLIENT_ID
             valueFrom:
               secretKeyRef:
@@ -105,7 +191,7 @@ spec:
               secretKeyRef:
                 name: qualytics-creds
                 key: auth0_organization
-        {{- if ( eq .Values.hubUserKeys.enabled true ) }}
+          {{- if ( eq .Values.hubUserKeys.enabled true ) }}
           - name: AUTH0_USER_CLIENT_ID
             valueFrom:
               secretKeyRef:
@@ -116,7 +202,8 @@ spec:
               secretKeyRef:
                 name: qualytics-creds
                 key: auth0_user_client_secret
-         {{- end }}
+          {{- end }}
+          {{- end }}
           - name: RABBIT_MQ_HOST
             value: "{{ .Release.Name }}-rabbitmq"
           - name: RABBIT_MQ_USER
