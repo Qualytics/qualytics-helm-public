@@ -105,7 +105,7 @@ frontendImage:
 
 # The following secrets are required
 secrets:
-  auth0:
+  auth0: # required for authType AUTH0 (the default)
     auth0_domain: auth.qualytics.io
     auth0_audience: changeme-api
     auth0_organization: org_changeme
@@ -114,6 +114,23 @@ secrets:
     auth0_client_secret: m2m_client_secret
     auth0_user_client_id: m2m_user_client_id
     auth0_user_client_secret: m2m_user_client_secret
+  oidc: # required for authType OIDC
+    oidc_jwt_signing_secret: oidc_jwt_signing_secret
+    oidc_internal_api_secret: oidc_internal_api_secret
+    oidc_admin_api_secret: oidc_admin_api_secret
+    oidc_scopes: oidc_scopes
+    oidc_authorization_endpoint: oidc_authorization_endpoint
+    oidc_token_endpoint: oidc_token_endpoint
+    oidc_userinfo_endpoint: oidc_userinfo_endpoint
+    oidc_client_id: oidc_client_id
+    oidc_client_secret: oidc_client_secret
+    oidc_user_id_key: oidc_user_id_key
+    oidc_user_email_key: oidc_user_email_key
+    oidc_user_name_key: oidc_user_name_key
+    oidc_user_fname_key: oidc_user_fname_key
+    oidc_user_lname_key: oidc_user_lname_key
+    oidc_user_picture_key: oidc_user_picture_key
+    oidc_user_provider_key: oidc_user_provider_key
   postgres:
     connection_url: postgres:postgres@postgres:5432/surveillence_hub
     secrets_passphrase: ChangeMe!
@@ -158,6 +175,7 @@ firewall:
 #--------------------------------------------------------------------------------
 hub:
   replicas: 3
+  authType: "AUTH0"
   ingress:
     path: "/api/?(.*)"
     servicePort: "8000"

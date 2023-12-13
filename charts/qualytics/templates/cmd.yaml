@@ -57,6 +57,17 @@ spec:
           {{- end }}
           - name: DATABASE_URL
             value: "postgresql+psycopg2://$(POSTGRES_CONNECTION_URL)"
+          {{- if ( eq .Values.hub.authType "OIDC" ) }}
+          - name: API_AUTH
+            value: OIDC
+          - name: OIDC_INTERNAL_API_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_internal_api_secret
+          {{- else }}
+          - name: API_AUTH
+            value: AUTH0
           - name: AUTH0_DOMAIN
             value: {{ .Values.secrets.auth0.auth0_domain }}
           - name: AUTH0_CLIENT_ID
@@ -74,6 +85,7 @@ spec:
               secretKeyRef:
                 name: qualytics-creds
                 key: auth0_audience
+          {{- end }}
           - name: RABBIT_MQ_HOST
             value: "{{ .Release.Name }}-rabbitmq"
           - name: RABBIT_MQ_USER
