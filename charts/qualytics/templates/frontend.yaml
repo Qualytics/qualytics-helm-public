@@ -42,6 +42,12 @@ spec:
             value: {{ tpl .Values.global.dnsRecord . | quote }}
           - name: VITE_QUALYTICS_API_LOCATION
             value: "https://$(VITE_QUALYTICS_DNS)/api"
+          {{- if ( eq .Values.hub.authType "OIDC" ) }}
+          - name: VITE_QUALYTICS_AUTH_PROVIDER
+            value: OIDC
+          {{- else }}
+          - name: VITE_QUALYTICS_AUTH_PROVIDER
+            value: AUTH0
           - name: VITE_QUALYTICS_AUTH0_LOGOUT_REDIRECT
             value: "https://$(VITE_QUALYTICS_DNS)"
           - name: VITE_QUALYTICS_AUTH0_DOMAIN
@@ -61,6 +67,7 @@ spec:
               secretKeyRef:
                 name: qualytics-creds
                 key: auth0_organization
+          {{- end }}
 
 ---
 apiVersion: v1
