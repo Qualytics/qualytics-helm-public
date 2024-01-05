@@ -5,7 +5,7 @@
 #--------------------------------------------------------------------------------
 # Dependencies
 #--------------------------------------------------------------------------------
-spark-operator:
+sparkoperator:
   enabled: true
   webhook:
     enable: true
@@ -24,7 +24,7 @@ spark-operator:
   #     value: "true"
   #     effect: NoSchedule
 
-ingress-nginx:
+nginx:
   enabled: false
   controller:
     # nodeSelector:
@@ -41,8 +41,9 @@ ingress-nginx:
       type: LoadBalancer
       externalTrafficPolicy: Local
 
-cert-manager:
+certmanager:
   enabled: false
+  registeredEmail: "devops@qualytics.co"
   installCRDs: "true"
   # nodeSelector:
   #   appNodes: "true"
@@ -53,12 +54,10 @@ cert-manager:
   #     effect: NoSchedule
 
 #--------------------------------------------------------------------------------
-# Ingress Nginx & Cert-manager
+# App Ingresses
 #--------------------------------------------------------------------------------
 ingress:
   enabled: false
-  certificates:
-    registeredEmail: "devops@qualytics.co"
 
 #--------------------------------------------------------------------------------
 # Global values

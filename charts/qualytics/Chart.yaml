@@ -2,18 +2,21 @@ apiVersion: v2
 name: qualytics
 description: A Helm chart for deploying Qualytics on Kubernetes
 type: application
-version: 2024.01.04
+version: 2024.01.05
 appVersion: "2024.01.04"
 dependencies:
 - name: spark-operator
   version: "1.x"
   repository: "https://googlecloudplatform.github.io/spark-on-k8s-operator"
-  condition: spark-operator.enabled
+  alias: sparkoperator
+  condition: sparkoperator.enabled
 - name: ingress-nginx
   version: "4.x"
   repository: "https://kubernetes.github.io/ingress-nginx"
-  condition: ingress-nginx.enabled
+  alias: nginx
+  condition: nginx.enabled
 - name: cert-manager
   version: "1.x"
   repository: "https://charts.jetstack.io"
-  condition: cert-manager.enabled
+  alias: certmanager
+  condition: certmanager.enabled
