@@ -25,7 +25,7 @@ sparkoperator:
   #     effect: NoSchedule
 
 nginx:
-  enabled: true
+  enabled: false
   controller:
     nodeSelector:
       appNodes: "true"
@@ -49,7 +49,7 @@ nginx:
       #   service.beta.kubernetes.io/aws-load-balancer-type: nlb
 
 certmanager:
-  enabled: true
+  enabled: false
   registeredEmail: "devops@qualytics.co"
   installCRDs: "true"
   nodeSelector:
