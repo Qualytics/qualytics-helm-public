@@ -52,8 +52,13 @@ spec:
           containers:
           - name: snapshotter
             env:
-              - name: URL
-                value: postgresql://postgres:postgres@{{ .Release.Name }}-postgres.{{ .Release.Namespace }}.svc.cluster.local:5432/surveillance_hub
+            - name: CONNECTION_URL
+              valueFrom:
+                secretKeyRef:
+                  name: qualytics-creds
+                  key: connection_url
+            - name: DATABASE_URL
+              value: postgresql://$(connection_url)
             image: "{{ tpl .Values.postgres.image.imageUrl . }}:{{ .Values.postgres.image.imageTag }}"
             imagePullPolicy: IfNotPresent
             command:
@@ -62,7 +67,7 @@ spec:
             - |
               TIMESTAMP=$( date +%Y-%-m-%d.%H%M )
               ARCHIVE="pg_dump.${TIMESTAMP}.sql"
-              pg_dump $URL > ./${ARCHIVE}
+              pg_dump $DATABASE_URL > ./${ARCHIVE}
               gzip -9 ./${ARCHIVE}
               mv ${ARCHIVE}.gz /mnt/data/postgres/${ARCHIVE}.gz
               ls /mnt/data/postgres/

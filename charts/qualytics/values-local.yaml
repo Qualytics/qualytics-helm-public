@@ -123,7 +123,11 @@ secrets:
     oidc_user_picture_key: oidc_user_picture_key
     oidc_user_provider_key: oidc_user_provider_key
   postgres:
-    connection_url: postgres:postgres@postgres:5432/surveillence_hub
+    host: postgres.default.svc.cluster.local
+    port: 5432
+    database: surveillance_hub
+    username: postgres
+    password: postgres
     secrets_passphrase: ChangeMe!
   smtp:
     smtp_sender_user: smtp_user
