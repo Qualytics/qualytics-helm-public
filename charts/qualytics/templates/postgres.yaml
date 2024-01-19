@@ -93,6 +93,8 @@ spec:
         - containerPort: 5432
           name: postgres
         env:
+          - name: POSTGRES_USER
+            value: "{{ .Values.secrets.postgres.username }}"
           - name: POSTGRES_PASSWORD
             value: "{{ .Values.secrets.postgres.password }}"
           - name: POSTGRES_DB
