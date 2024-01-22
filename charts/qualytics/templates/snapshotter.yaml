@@ -58,7 +58,7 @@ spec:
                   name: qualytics-creds
                   key: connection_url
             - name: DATABASE_URL
-              value: postgresql://$(connection_url)
+              value: postgresql://$(CONNECTION_URL)
             image: "{{ tpl .Values.postgres.image.imageUrl . }}:{{ .Values.postgres.image.imageTag }}"
             imagePullPolicy: IfNotPresent
             command:
