@@ -93,10 +93,12 @@ spec:
         - containerPort: 5432
           name: postgres
         env:
+          - name: POSTGRES_USER
+            value: "{{ .Values.secrets.postgres.username }}"
           - name: POSTGRES_PASSWORD
-            value: postgres
+            value: "{{ .Values.secrets.postgres.password }}"
           - name: POSTGRES_DB
-            value: surveillance_hub
+            value: "{{ .Values.secrets.postgres.database }}"
           - name: PGDATA
             value: /mnt/data/pgdata
         resources:

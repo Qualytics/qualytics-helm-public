@@ -4,50 +4,12 @@ metadata:
   name: {{ .Release.Name }}-rabbitmq-config
 data:
   enabled_plugins: |
-    [rabbitmq_federation,rabbitmq_management,rabbitmq_peer_discovery_k8s].
+    [rabbitmq_management].
   rabbitmq.conf: |
     default_user = user
     loopback_users.user = false
     listeners.tcp.default = 5672
-    cluster_formation.peer_discovery_backend  = rabbit_peer_discovery_k8s
-    cluster_formation.k8s.host = kubernetes.default.svc.cluster.local
-    cluster_formation.k8s.address_type = hostname
-    cluster_formation.node_cleanup.only_log_warning = true
-    cluster_formation.node_cleanup.interval = 30
-    cluster_partition_handling = autoheal
     consumer_timeout = 3600000 # 60 minutes in milliseconds
-
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: {{ .Release.Name }}-rabbitmq
-
----
-kind: Role
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: {{ .Release.Name }}-rabbitmq
-rules:
-- apiGroups: [""]
-  resources: ["endpoints"]
-  verbs: ["get"]
-- apiGroups: [""]
-  resources: ["events"]
-  verbs: ["create"]
-
----
-kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: {{ .Release.Name }}-rabbitmq
-subjects:
-- kind: ServiceAccount
-  name: {{ .Release.Name }}-rabbitmq
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: {{ .Release.Name }}-rabbitmq
 
 ---
 apiVersion: v1
@@ -109,7 +71,6 @@ spec:
           value: "true"
           effect: NoSchedule
       {{- end }}
-      serviceAccountName: {{ .Release.Name }}-rabbitmq
       initContainers:
       - name: config
         image: "{{ tpl .Values.busybox.image.imageUrl . }}:{{ .Values.busybox.image.imageTag }}"

@@ -45,16 +45,11 @@ spec:
               secretKeyRef:
                 name: qualytics-creds
                 key: secrets_passphrase
-          {{- if ( eq .Values.postgres.enabled true ) }}
-          - name: POSTGRES_CONNECTION_URL
-            value: "postgres:postgres@{{ .Release.Name }}-postgres.{{ .Release.Namespace }}.svc.cluster.local:5432/surveillance_hub"
-          {{- else }}
           - name: POSTGRES_CONNECTION_URL
             valueFrom:
               secretKeyRef:
                 name: qualytics-creds
                 key: connection_url
-          {{- end }}
           - name: DATABASE_URL
             value: "postgresql+psycopg2://$(POSTGRES_CONNECTION_URL)"
           {{- if ( eq .Values.hub.authType "OIDC" ) }}
