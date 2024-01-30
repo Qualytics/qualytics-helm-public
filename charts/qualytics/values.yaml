@@ -94,13 +94,13 @@ selectors:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20240126-e52e835"
+    firewallImageTag: "20240130-8fd0e05"
 hubImage:
   image:
-    hubImageTag: "20240126-eb6ff9b"
+    hubImageTag: "20240130-39659e4"
 frontendImage:
   image:
-    frontendImageTag: "20240126-97a3c76"
+    frontendImageTag: "20240130-da76dd7"
 
 #--------------------------------------------------------------------------------
 # Firewall configuration
