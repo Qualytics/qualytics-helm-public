@@ -94,13 +94,13 @@ selectors:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20240130-8fd0e05"
+    firewallImageTag: "20240202-050c8d3"
 hubImage:
   image:
-    hubImageTag: "20240130-39659e4"
+    hubImageTag: "20240202-7773fa8"
 frontendImage:
   image:
-    frontendImageTag: "20240130-da76dd7"
+    frontendImageTag: "20240202-8004eda"
 
 #--------------------------------------------------------------------------------
 # Firewall configuration
@@ -112,25 +112,25 @@ firewall:
   useVolumes: true
   threadPoolParallelism: -1
   maxExecutors: 20
-  numCoresPerExecutor: 7
-  maxMemoryPerExecutor: 56000
+  numCoresPerExecutor: 3
+  maxMemoryPerExecutor: 27500
   libpostalDataPath: "/opt/libpostal"
   driver:
-    cores: 7
-    coreLimit: "7800m"
-    memory: "56000m"
+    cores: 3
+    coreLimit: "3800m"
+    memory: "27500m"
   dynamicAllocation:
     enabled: true
-    initialExecutors: 0
-    minExecutors: 0
+    initialExecutors: 1
+    minExecutors: 1
     maxExecutors: 20
   executor:
     ## Note that if dynamic allocation is enabled, the number of executors to request initially is set to the biggest
     # of .spec.dynamicAllocation.initialExecutors and .spec.executor.instances if both are set.
     instances: 1
-    cores: 7
-    coreLimit: "7800m"
-    memory: "56000m"
+    cores: 3
+    coreLimit: "3800m"
+    memory: "27500m"
 
 #--------------------------------------------------------------------------------
 # Hub configuration
@@ -152,7 +152,7 @@ hub:
 
 hubCmd:
   resources:
-    memory: "1Gi"
+    memory: "2Gi"
     cpu: "500m"
 
 hubUserKeys:
@@ -195,7 +195,7 @@ rabbitmq:
     imageUrl: "artifactory.qualytics.io/docker/rabbitmq"
     imageTag: "3.12-management"
   resources:
-    memory: "1Gi"
+    memory: "2Gi"
     cpu: "1000m"
 
 #--------------------------------------------------------------------------------

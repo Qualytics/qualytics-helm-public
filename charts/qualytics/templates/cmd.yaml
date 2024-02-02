@@ -4,6 +4,8 @@ metadata:
   name: {{ .Release.Name }}-cmd
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: {{ .Release.Name }}-cmd

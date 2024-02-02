@@ -11,10 +11,10 @@ spec:
     - regcred
   restartPolicy:
     type: Always
-    onFailureRetries: 50
-    onFailureRetryInterval: 10
-    onSubmissionFailureRetries: 10
-    onSubmissionFailureRetryInterval: 50
+    onFailureRetries: 100
+    onFailureRetryInterval: 5
+    onSubmissionFailureRetries: 100
+    onSubmissionFailureRetryInterval: 5
   mainClass: io.qualytics.firewall.SparkMothership
   mainApplicationFile: "local:///opt/spark/jars/firewall-core.jar"
   sparkVersion: {{ .Values.firewall.sparkVersion }}
