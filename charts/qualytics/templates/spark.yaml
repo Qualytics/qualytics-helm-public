@@ -21,7 +21,7 @@ spec:
   sparkConf:
     spark.eventLog.enabled: {{ .Values.firewall.eventLog | quote }}
     spark.dynamicAllocation.shuffleTracking.enabled: "true"
-    # spark.kubernetes.memoryOverheadFactor: "0.2"
+    spark.kubernetes.memoryOverheadFactor: "0.2"
     spark.kubernetes.submission.connectionTimeout: "480000"
     spark.kubernetes.submission.requestTimeout: "480000"
     spark.kubernetes.driver.connectionTimeout: "480000"

@@ -94,13 +94,13 @@ selectors:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20240215-746a9f9"
+    firewallImageTag: "20240217-dc51eea"
 hubImage:
   image:
-    hubImageTag: "20240215-99db8d4"
+    hubImageTag: "20240217-1327200"
 frontendImage:
   image:
-    frontendImageTag: "20240215-ef44d65"
+    frontendImageTag: "20240217-d660cf2"
 
 #--------------------------------------------------------------------------------
 # Firewall configuration
@@ -113,12 +113,12 @@ firewall:
   threadPoolParallelism: -1
   maxExecutors: 20
   numCoresPerExecutor: 3
-  maxMemoryPerExecutor: 27500
+  maxMemoryPerExecutor: 25000
   libpostalDataPath: "/opt/libpostal"
   driver:
     cores: 3
     coreLimit: "3800m"
-    memory: "27500m"
+    memory: "25000m"
   dynamicAllocation:
     enabled: true
     initialExecutors: 1
@@ -130,7 +130,7 @@ firewall:
     instances: 1
     cores: 3
     coreLimit: "3800m"
-    memory: "27500m"
+    memory: "25000m"
 
 #--------------------------------------------------------------------------------
 # Hub configuration
