@@ -12,6 +12,9 @@ metadata:
     {{- end }}
     nginx.ingress.kubernetes.io/proxy-redirect-from: 'http'
     nginx.ingress.kubernetes.io/proxy-redirect-to: 'https'
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '3600'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
     nginx.ingress.kubernetes.io/use-regex: 'true'
     nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
     nginx.ingress.kubernetes.io/enable-modsecurity: 'true'
@@ -82,6 +85,11 @@ metadata:
     {{- if ( eq .Values.certmanager.enabled true ) }}
     cert-manager.io/cluster-issuer: 'letsencrypt'
     {{- end }}
+    nginx.ingress.kubernetes.io/proxy-redirect-from: 'http'
+    nginx.ingress.kubernetes.io/proxy-redirect-to: 'https'
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '3600'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
     nginx.ingress.kubernetes.io/use-regex: 'true'
     nginx.ingress.kubernetes.io/rewrite-target: /$1
     nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
@@ -99,8 +107,6 @@ metadata:
       SecAuditEngine RelevantOnly # could be On/Off/RelevantOnly
       # addresses SC-14854
       SecRule REQUEST_URI "@rx ^.*/\?(/\?)+/?$" "id:14854,phase:2,deny,status:403"      
-    nginx.ingress.kubernetes.io/proxy-redirect-from: 'http'
-    nginx.ingress.kubernetes.io/proxy-redirect-to: 'https'
     nginx.ingress.kubernetes.io/configuration-snippet: |
       add_header X-Frame-Options "sameorigin";
       add_header X-Content-Type-Options nosniff;
