@@ -2,6 +2,32 @@ apiVersion: v1
 entries:
   qualytics:
   - apiVersion: v2
+    appVersion: 2024.02.28
+    created: "2024-02-29T01:35:10.285369999Z"
+    dependencies:
+    - alias: sparkoperator
+      condition: sparkoperator.enabled
+      name: spark-operator
+      repository: https://googlecloudplatform.github.io/spark-on-k8s-operator
+      version: 1.x
+    - alias: nginx
+      condition: nginx.enabled
+      name: ingress-nginx
+      repository: https://kubernetes.github.io/ingress-nginx
+      version: 4.x
+    - alias: certmanager
+      condition: certmanager.enabled
+      name: cert-manager
+      repository: https://charts.jetstack.io
+      version: 1.x
+    description: A Helm chart for deploying Qualytics on Kubernetes
+    digest: 4510c0f6236c00fb8e9773add320cbb2d392d01d41c009f418d5ef7781064f32
+    name: qualytics
+    type: application
+    urls:
+    - https://github.com/Qualytics/qualytics-helm-public/releases/download/qualytics-2024.02.28/qualytics-2024.02.28.tgz
+    version: 2024.02.28
+  - apiVersion: v2
     appVersion: 2024.02.23
     created: "2024-02-24T02:09:08.226739693Z"
     dependencies:
@@ -1217,4 +1243,4 @@ entries:
     urls:
     - https://github.com/Qualytics/qualytics-helm-public/releases/download/qualytics-2023.07.19/qualytics-2023.07.19.tgz
     version: 2023.07.19
-generated: "2024-02-24T02:09:08.226898651Z"
+generated: "2024-02-29T01:35:10.285530309Z"
