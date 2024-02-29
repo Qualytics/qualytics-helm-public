@@ -94,13 +94,13 @@ selectors:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20240223-38bbeb1"
+    firewallImageTag: "20240228-93de762"
 hubImage:
   image:
-    hubImageTag: "20240223-5168ed3"
+    hubImageTag: "20240228-787759d"
 frontendImage:
   image:
-    frontendImageTag: "20240223-ad1cb65"
+    frontendImageTag: "20240228-3e8c102"
 
 #--------------------------------------------------------------------------------
 # Firewall configuration
@@ -154,9 +154,6 @@ hubCmd:
   resources:
     memory: "2Gi"
     cpu: "500m"
-
-hubUserKeys:
-  enabled: true
 
 #--------------------------------------------------------------------------------
 # Frontend configuration
@@ -215,14 +212,7 @@ secrets:
     auth0_audience: changeme-api
     auth0_organization: org_changeme
     auth0_spa_client_id: spa_client_id
-    auth0_client_id: m2m_client_id
-    auth0_client_secret: m2m_client_secret
-    auth0_user_client_id: m2m_user_client_id
-    auth0_user_client_secret: m2m_user_client_secret
   oidc: # required for authType OIDC
-    oidc_jwt_signing_secret: oidc_jwt_signing_secret
-    oidc_internal_api_secret: oidc_internal_api_secret
-    oidc_admin_api_secret: oidc_admin_api_secret
     oidc_scopes: oidc_scopes
     oidc_authorization_endpoint: oidc_authorization_endpoint
     oidc_token_endpoint: oidc_token_endpoint
@@ -236,6 +226,8 @@ secrets:
     oidc_user_lname_key: oidc_user_lname_key
     oidc_user_picture_key: oidc_user_picture_key
     oidc_user_provider_key: oidc_user_provider_key
+  auth:
+    jwt_signing_secret: ChangeMe!
   postgres:
     host: postgres
     port: 5432

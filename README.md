@@ -27,10 +27,10 @@ Nodes with the `sparkNodes=true` label will be used for Spark jobs and nodes wit
 |          |          Application Nodes          |                  Spark Nodes                    |
 |----------|:-----------------------------------:|:-----------------------------------------------:|
 | Label    | appNodes=true                       | sparkNodes=true                                 |
-| Scaling  | Fixed (1 node on-demand pricing)    | Autoscaling (1 - 21 nodes spot pricing)         |
-| EKS      | t3.2xlarge                          | r5d.2xlarge                                     |
-| GKE      | n2-standard-8                       | c2d-highmem-8                                   |
-| AKS      | Standard_D8_v5                      | Standard_E8s_v5                                 |
+| Scaling  | Fixed (1 node on-demand)            | Autoscaling (2 - 21 nodes spot)                 |
+| EKS      | t3.2xlarge                          | r5d.xlarge                                      |
+| GKE      | n2-standard-8                       | c2d-highmem-4                                   |
+| AKS      | Standard_D8_v5                      | Standard_E4s_v5                                 |
 
 #### Docker Registry Secrets
 
@@ -52,10 +52,6 @@ Update `values.yaml` according to your requirements. At minimum, the "secrets" s
 auth0_audience: changeme-api
 auth0_organization: org_changeme
 auth0_spa_client_id: spa_client_id
-auth0_client_id: m2m_client_id
-auth0_client_secret: m2m_client_secret
-auth0_user_client_id: m2m_user_client_id
-auth0_user_client_secret: m2m_user_client_secret
 ```
 
 Contact your [Qualytics account manager](mailto://hello@qualytics.co) for assistance.
