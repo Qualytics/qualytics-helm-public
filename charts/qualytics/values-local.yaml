@@ -98,7 +98,7 @@ frontendImage:
 # Firewall configuration
 #--------------------------------------------------------------------------------
 firewall:
-  sparkVersion: "3.5.0"
+  sparkVersion: "3.5.1"
   eventLog: "false"
   useCache: "true"
   useVolumes: false
@@ -183,7 +183,7 @@ rabbitmq:
     storageSize: "10Gi"
   image:
     imageUrl: "artifactory.qualytics.io/docker/rabbitmq"
-    imageTag: "3.12-management"
+    imageTag: "3.13-management"
   resources:
     memory: "1Gi"
     cpu: "1000m"

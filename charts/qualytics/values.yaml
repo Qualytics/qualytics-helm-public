@@ -94,19 +94,19 @@ selectors:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20240228-93de762"
+    firewallImageTag: "20240305-689fcf4"
 hubImage:
   image:
-    hubImageTag: "20240228-787759d"
+    hubImageTag: "20240305-20f0d07"
 frontendImage:
   image:
-    frontendImageTag: "20240228-3e8c102"
+    frontendImageTag: "20240305-50fc31f"
 
 #--------------------------------------------------------------------------------
 # Firewall configuration
 #--------------------------------------------------------------------------------
 firewall:
-  sparkVersion: "3.5.0"
+  sparkVersion: "3.5.1"
   eventLog: "false"
   useCache: "true"
   useVolumes: true
@@ -190,7 +190,7 @@ rabbitmq:
     storageSize: "10Gi"
   image:
     imageUrl: "artifactory.qualytics.io/docker/rabbitmq"
-    imageTag: "3.12-management"
+    imageTag: "3.13-management"
   resources:
     memory: "2Gi"
     cpu: "1000m"
