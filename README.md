@@ -37,7 +37,8 @@ Nodes with the `sparkNodes=true` label will be used for Spark jobs and nodes wit
 Execute the command below using the credentials supplied by your account manager as replacements for "your-name" and "your-pword". The secret created will provide access to Qualytics private registry and the required images that are available there.
 
 ```bash
-kubectl create secret docker-registry regcred --docker-server=artifactory.qualytics.io/docker --docker-username=<your-name> --docker-password=<your-pword>
+kubectl create namespace qualytics
+kubectl create secret docker-registry regcred -n qualytics --docker-username=qualyticsread --docker-password=<token>
 ```
 
 > [!IMPORTANT]

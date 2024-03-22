@@ -76,9 +76,9 @@ global:
   platform: "aws"
   dnsRecord: "changeme.qualytics.io"
   imageUrls:
-    firewallImageUrl: "artifactory.qualytics.io/docker/firewall-prod"
-    hubImageUrl: "artifactory.qualytics.io/docker/hub-prod"
-    frontendImageUrl: "artifactory.qualytics.io/docker/frontend-prod"
+    firewallImageUrl: "qualyticsai/firewall-prod"
+    hubImageUrl: "qualyticsai/hub-prod"
+    frontendImageUrl: "qualyticsai/frontend-prod"
 
 # Storage classes
 storageClass:
@@ -94,13 +94,13 @@ selectors:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20240315-7572998"
+    firewallImageTag: "20240322-4f6f243"
 hubImage:
   image:
-    hubImageTag: "20240315-94bce72"
+    hubImageTag: "20240322-35b9343"
 frontendImage:
   image:
-    frontendImageTag: "20240315-05e2f60"
+    frontendImageTag: "20240322-227565d"
 
 #--------------------------------------------------------------------------------
 # Firewall configuration
@@ -176,7 +176,7 @@ postgres:
     storageSize: "100Gi"
     backupVolumeStorageSize: "50Gi"
   image:
-    imageUrl: "artifactory.qualytics.io/docker/postgres"
+    imageUrl: "postgres"
     imageTag: "14"
   resources:
     memory: "12Gi"
@@ -189,7 +189,7 @@ rabbitmq:
   pvc:
     storageSize: "10Gi"
   image:
-    imageUrl: "artifactory.qualytics.io/docker/rabbitmq"
+    imageUrl: "rabbitmq"
     imageTag: "3.13-management"
   resources:
     memory: "2Gi"
@@ -200,7 +200,7 @@ rabbitmq:
 #--------------------------------------------------------------------------------
 busybox:
   image:
-    imageUrl: "artifactory.qualytics.io/docker/busybox"
+    imageUrl: "busybox"
     imageTag: "latest"
 
 #--------------------------------------------------------------------------------

@@ -68,9 +68,9 @@ global:
   platform: "local"
   dnsRecord: "changeme.qualytics.io"
   imageUrls:
-    firewallImageUrl: "artifactory.qualytics.io/docker/firewall-prod"
-    hubImageUrl: "artifactory.qualytics.io/docker/hub-prod"
-    frontendImageUrl: "artifactory.qualytics.io/docker/frontend-prod"
+    firewallImageUrl: "qualyticsai/firewall-prod"
+    hubImageUrl: "qualyticsai/hub-prod"
+    frontendImageUrl: "qualyticsai/frontend-prod"
 
 # Storage classes
 storageClass:
@@ -169,7 +169,7 @@ postgres:
     storageSize: "10Gi"
     backupVolumeStorageSize: "5Gi"
   image:
-    imageUrl: "artifactory.qualytics.io/docker/postgres"
+    imageUrl: "postgres"
     imageTag: "14"
   resources:
     memory: "4Gi"
@@ -182,7 +182,7 @@ rabbitmq:
   pvc:
     storageSize: "10Gi"
   image:
-    imageUrl: "artifactory.qualytics.io/docker/rabbitmq"
+    imageUrl: "rabbitmq"
     imageTag: "3.13-management"
   resources:
     memory: "1Gi"
@@ -193,7 +193,7 @@ rabbitmq:
 #--------------------------------------------------------------------------------
 busybox:
   image:
-    imageUrl: "artifactory.qualytics.io/docker/busybox"
+    imageUrl: "busybox"
     imageTag: "latest"
 
 #--------------------------------------------------------------------------------
