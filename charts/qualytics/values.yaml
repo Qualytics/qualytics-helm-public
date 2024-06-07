@@ -7,15 +7,10 @@
 #--------------------------------------------------------------------------------
 sparkoperator:
   enabled: true
+  metrics:
+    enable: false
   webhook:
     enable: true
-    port: 443
-    initAnnotations:
-      "helm.sh/hook": pre-install
-      "helm.sh/hook-weight": "50"
-    cleanupAnnotations:
-      "helm.sh/hook": pre-delete
-      "helm.sh/hook-delete-policy": hook-succeeded
   nodeSelector:
     appNodes: "true"
   # tolerations:
@@ -94,13 +89,13 @@ selectors:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20240604-c596f20"
+    firewallImageTag: "20240607-fb0151e"
 hubImage:
   image:
-    hubImageTag: "20240604-7f139b5"
+    hubImageTag: "20240607-7d73551"
 frontendImage:
   image:
-    frontendImageTag: "20240604-f597ae6"
+    frontendImageTag: "20240607-9bccfa3"
 
 #--------------------------------------------------------------------------------
 # Firewall configuration
