@@ -89,21 +89,21 @@ selectors:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20240629-3ac4c38"
+    firewallImageTag: "20240705-52c7fdb"
 hubImage:
   image:
-    hubImageTag: "20240629-470f5f8"
+    hubImageTag: "20240705-b385ca6"
 frontendImage:
   image:
-    frontendImageTag: "20240629-1a47c80"
+    frontendImageTag: "20240705-c733fc5"
 
 #--------------------------------------------------------------------------------
 # Firewall configuration
 #--------------------------------------------------------------------------------
 firewall:
   sparkVersion: "3.5.1"
-  eventLog: "false"
-  useCache: "true"
+  eventLog: false
+  useCache: true
   useVolumes: true
   threadPoolParallelism: -1
   maxExecutors: 20
