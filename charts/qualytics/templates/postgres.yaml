@@ -82,7 +82,7 @@ spec:
           - -c
           - work_mem=512MB  # Adjust so that max_connections * work_mem is well below total memory
           - -c
-          - effective_cache_size=9GB  # Adjust to about 75% of total memory
+          - effective_cache_size=8GB  # Adjust to about 75% of total memory
           - '-c'
           - jit=off
           - -c

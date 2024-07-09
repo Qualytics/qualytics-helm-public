@@ -27,7 +27,7 @@ Nodes with the `sparkNodes=true` label will be used for Spark jobs and nodes wit
 |          |          Application Nodes          |                  Spark Nodes                    |
 |----------|:-----------------------------------:|:-----------------------------------------------:|
 | Label    | appNodes=true                       | sparkNodes=true                                 |
-| Scaling  | Fixed (1 node on-demand)            | Autoscaling (2 - 21 nodes spot)                 |
+| Scaling  | Fixed (1 node on-demand)            | Autoscaling (2 - 11 nodes spot)                 |
 | EKS      | t3.2xlarge                          | r5d.xlarge                                      |
 | GKE      | n2-standard-8                       | c2d-highmem-4                                   |
 | AKS      | Standard_D8_v5                      | Standard_E4s_v5                                 |

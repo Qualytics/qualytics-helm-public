@@ -89,13 +89,13 @@ selectors:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20240705-52c7fdb"
+    firewallImageTag: "20240709-941a6c9"
 hubImage:
   image:
-    hubImageTag: "20240705-b385ca6"
+    hubImageTag: "20240709-546cd5c"
 frontendImage:
   image:
-    frontendImageTag: "20240705-c733fc5"
+    frontendImageTag: "20240709-00558bd"
 
 #--------------------------------------------------------------------------------
 # Firewall configuration
@@ -106,13 +106,13 @@ firewall:
   useCache: true
   useVolumes: true
   threadPoolParallelism: -1
-  maxExecutors: 20
+  maxExecutors: 10
   numCoresPerExecutor: 3
   maxMemoryPerExecutor: 25000
   libpostalDataPath: "/opt/libpostal"
   driver:
     cores: 3
-    coreLimit: "3800m"
+    coreLimit: "3500m"
     memory: "25000m"
   dynamicAllocation:
     enabled: true
@@ -124,14 +124,14 @@ firewall:
     # of .spec.dynamicAllocation.initialExecutors and .spec.executor.instances if both are set.
     instances: 1
     cores: 3
-    coreLimit: "3800m"
+    coreLimit: "3500m"
     memory: "25000m"
 
 #--------------------------------------------------------------------------------
 # Hub configuration
 #--------------------------------------------------------------------------------
 hub:
-  replicas: 3
+  replicas: 6
   authType: "AUTH0"
   ingress:
     path: "/api/?(.*)"
@@ -174,7 +174,7 @@ postgres:
     imageUrl: "postgres"
     imageTag: "14"
   resources:
-    memory: "12Gi"
+    memory: "10Gi"
     cpu: "2000m"
 
 #--------------------------------------------------------------------------------
@@ -188,7 +188,7 @@ rabbitmq:
     imageTag: "3.13-management"
   resources:
     memory: "2Gi"
-    cpu: "1000m"
+    cpu: "500m"
 
 #--------------------------------------------------------------------------------
 # Busybox
