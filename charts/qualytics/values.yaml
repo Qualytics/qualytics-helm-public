@@ -89,13 +89,13 @@ selectors:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20240719-22a3427"
+    firewallImageTag: "20240726-0463166"
 hubImage:
   image:
-    hubImageTag: "20240719-9ec2e3a"
+    hubImageTag: "20240726-68e8732"
 frontendImage:
   image:
-    frontendImageTag: "20240719-4beb8a2"
+    frontendImageTag: "20240726-b5ae681"
 
 #--------------------------------------------------------------------------------
 # Firewall configuration
@@ -170,9 +170,13 @@ postgres:
   pvc:
     storageSize: "100Gi"
     backupVolumeStorageSize: "50Gi"
+  # image:
+  #   imageUrl: "postgres"
+  #   imageTag: "16"
+  ## Use this image for auto upgrade
   image:
-    imageUrl: "postgres"
-    imageTag: "14"
+    imageUrl: "pgautoupgrade/pgautoupgrade"
+    imageTag: "16-bookworm"
   resources:
     memory: "10Gi"
     cpu: "2000m"

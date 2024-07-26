@@ -170,7 +170,7 @@ postgres:
     backupVolumeStorageSize: "5Gi"
   image:
     imageUrl: "postgres"
-    imageTag: "14"
+    imageTag: "16"
   resources:
     memory: "4Gi"
     cpu: "1000m"
