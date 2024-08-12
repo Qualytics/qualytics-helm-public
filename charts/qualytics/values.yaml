@@ -170,13 +170,13 @@ postgres:
   pvc:
     storageSize: "100Gi"
     backupVolumeStorageSize: "50Gi"
-  # image:
-  #   imageUrl: "postgres"
-  #   imageTag: "16"
-  ## Use this image for auto upgrade
   image:
-    imageUrl: "pgautoupgrade/pgautoupgrade"
-    imageTag: "16-bookworm"
+    imageUrl: "postgres"
+    imageTag: "16"
+  # Use this image for auto upgrade
+  # image:
+  #   imageUrl: "pgautoupgrade/pgautoupgrade"
+  #   imageTag: "16-bookworm"
   resources:
     memory: "10Gi"
     cpu: "2000m"
@@ -191,7 +191,7 @@ rabbitmq:
     imageUrl: "rabbitmq"
     imageTag: "3.13-management"
   resources:
-    memory: "2Gi"
+    memory: "1Gi"
     cpu: "500m"
 
 #--------------------------------------------------------------------------------
