@@ -81,10 +81,35 @@ storageClass:
   name: ""
 
 # Node scheduling
+appNodeSelector:
+  appNodes: "true"
+# appNodeSelector: {}
+driverNodeSelector:
+  driverNodes: "true"
+# driverNodeSelector: {}
+executorNodeSelector:
+  executorNodes: "true"
+# executorNodeSelector: {}
+
 tolerations:
-  enabled: false
-selectors:
-  enabled: true
+  appNodeTolerations: []
+  # appNodeTolerations:
+  #     - key: appNodes
+  #       operator: Equal
+  #       value: "true"
+  #       effect: NoSchedule
+  driverNodeTolerations: []
+  # driverNodeTolerations:
+  #     - key: driverNodes
+  #       operator: Equal
+  #       value: "true"
+  #       effect: NoSchedule
+  executorNodeTolerations: []
+  # executorNodeTolerations:
+  #     - key: executorNodes
+  #       operator: Equal
+  #       value: "true"
+  #       effect: NoSchedule
 
 # App image tags
 firewallImage:
@@ -104,28 +129,30 @@ firewall:
   sparkVersion: "3.5.2"
   eventLog: false
   useCache: true
-  useVolumes: true
+  useVolumes: false
+  numVolumes: 1
   threadPoolParallelism: -1
-  maxExecutors: 10
-  numCoresPerExecutor: 3
-  maxMemoryPerExecutor: 25000
+  maxExecutors: 12
+  numCoresPerExecutor: 7
+  maxMemoryPerExecutor: 55000
+  memoryOverheadFactor: 0.1
   libpostalDataPath: "/opt/libpostal"
   driver:
-    cores: 3
-    coreLimit: "3500m"
-    memory: "25000m"
+    cores: 7
+    coreLimit: "7000m"
+    memory: "55000m"
   dynamicAllocation:
     enabled: true
     initialExecutors: 1
     minExecutors: 1
-    maxExecutors: 20
+    maxExecutors: 12
   executor:
     ## Note that if dynamic allocation is enabled, the number of executors to request initially is set to the biggest
     # of .spec.dynamicAllocation.initialExecutors and .spec.executor.instances if both are set.
     instances: 1
-    cores: 3
-    coreLimit: "3500m"
-    memory: "25000m"
+    cores: 7
+    coreLimit: "7000m"
+    memory: "55000m"
 
 #--------------------------------------------------------------------------------
 # Hub configuration
