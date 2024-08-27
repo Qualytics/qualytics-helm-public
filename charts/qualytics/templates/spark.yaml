@@ -12,41 +12,33 @@ spec:
   restartPolicy:
     type: Always
     onFailureRetries: 1000
-    onFailureRetryInterval: 10
+    onFailureRetryInterval: 5
     onSubmissionFailureRetries: 1000
-    onSubmissionFailureRetryInterval: 10
+    onSubmissionFailureRetryInterval: 5
   mainClass: io.qualytics.firewall.SparkMothership
   mainApplicationFile: "local:///opt/spark/jars/firewall-core.jar"
   sparkVersion: {{ .Values.firewall.sparkVersion }}
   sparkConf:
-    spark.eventLog.enabled: {{ .Values.firewall.eventLog | quote }}
     spark.dynamicAllocation.shuffleTracking.enabled: "true"
-    spark.kubernetes.memoryOverheadFactor: "0.2"
+    spark.eventLog.enabled: {{ .Values.firewall.eventLog | quote }}
+    spark.kubernetes.memoryOverheadFactor: {{ .Values.firewall.memoryOverheadFactor | quote }}
     spark.kubernetes.submission.connectionTimeout: "480000"
     spark.kubernetes.submission.requestTimeout: "480000"
     spark.kubernetes.driver.connectionTimeout: "480000"
     spark.kubernetes.driver.requestTimeout: "480000"
-  {{- if ( eq .Values.firewall.useVolumes true ) }}
+  {{- if .Values.firewall.useVolumes }}
   volumes:
-    - name: "spark-local-dir-driver"
-    {{- if ( eq .Values.global.platform "aws" ) }}
+    {{- range $i := until (int .Values.firewall.numVolumes) }}
+    - name: "spark-local-dir-{{ add1 $i }}"
+      {{- if ( eq $.Values.global.platform "aws" ) }}
       hostPath:
-        path: "/local-1/spark-local-dir"
-    {{- else if ( eq .Values.global.platform "gcp" ) }}
+        path: "/local-{{ add1 $i }}/spark-local-dir-{{ add1 $i }}"
+      {{- else if ( eq $.Values.global.platform "gcp" ) }}
       hostPath:
-        path: "/var/spark-local-dir"
-    {{- else }}
+        path: "/var/spark-local-dir-{{ add1 $i }}"
+      {{- else }}
       emptyDir: {}
-    {{- end }}
-    - name: "spark-local-dir-executor"
-    {{- if ( eq .Values.global.platform "aws" ) }}
-      hostPath:
-        path: "/local-1/spark-local-dir"
-    {{- else if ( eq .Values.global.platform "gcp" ) }}
-      hostPath:
-        path: "/var/spark-local-dir"
-    {{- else }}
-      emptyDir: {}
+      {{- end }}
     {{- end }}
   {{- end }}
   driver:
@@ -56,16 +48,13 @@ spec:
     coreLimit: {{ .coreLimit }}
     memory: {{ .memory }}
     {{- end }}
-    {{- if ( eq .Values.selectors.enabled true ) }}
+    {{- if .Values.driverNodeSelector }}
     nodeSelector:
-      sparkNodes: "true"
+      {{- toYaml .Values.driverNodeSelector | nindent 6 }}
     {{- end }}
-    {{- if ( eq .Values.tolerations.enabled true ) }}
+    {{- if .Values.tolerations.driverNodeTolerations }}
     tolerations:
-      - key: sparkNodes
-        operator: Equal
-        value: "true"
-        effect: NoSchedule
+      {{- toYaml .Values.tolerations.driverNodeTolerations | nindent 6 }}
     {{- end }}
     javaOptions:
       "-Divy.cache.dir=/tmp
@@ -118,23 +107,6 @@ spec:
     labels:
       version: {{ .Values.firewall.sparkVersion }}
     serviceAccount: {{ .Release.Name }}-spark
-    securityContext:
-      runAsUser: 185
-    {{- if ( eq .Values.firewall.useVolumes true ) }}
-    volumeMounts:
-      - name: "spark-local-dir-driver"
-        mountPath: "/tmp/spark-local-dir"
-    initContainers:
-    - name: init-spark-local-dir
-      image: "{{ tpl .Values.busybox.image.imageUrl . }}:{{ .Values.busybox.image.imageTag }}"
-      imagePullPolicy: IfNotPresent
-      command: ['sh', '-c', 'chmod 777 /tmp/spark-local-dir']
-      securityContext:
-        runAsUser: 0
-      volumeMounts:
-      - name: "spark-local-dir-driver"
-        mountPath: "/tmp/spark-local-dir"
-    {{- end }}
   dynamicAllocation:
     {{- with $resources.dynamicAllocation }}
     enabled: true
@@ -154,31 +126,30 @@ spec:
        -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
     labels:
       version: {{ .Values.firewall.sparkVersion }}
-    securityContext:
-      runAsUser: 185
-    {{- if ( eq .Values.selectors.enabled true ) }}
+    {{- if .Values.executorNodeSelector }}
     nodeSelector:
-      sparkNodes: "true"
+      {{- toYaml .Values.executorNodeSelector | nindent 6 }}
     {{- end }}
-    {{- if ( eq .Values.tolerations.enabled true ) }}
+    {{- if .Values.tolerations.executorNodeTolerations }}
     tolerations:
-      - key: sparkNodes
-        operator: Equal
-        value: "true"
-        effect: NoSchedule
+      {{- toYaml .Values.tolerations.executorNodeTolerations | nindent 6 }}
     {{- end }}
-    {{- if ( eq .Values.firewall.useVolumes true ) }}
+    {{- if .Values.firewall.useVolumes }}
     volumeMounts:
-      - name: "spark-local-dir-executor"
-        mountPath: "/tmp/spark-local-dir"
+      {{- range $i := until (int .Values.firewall.numVolumes) }}
+      - name: "spark-local-dir-{{ add1 $i }}"
+        mountPath: "/tmp/spark-local-dir-{{ add1 $i }}"
+      {{- end }}
     initContainers:
     - name: init-spark-local-dir
       image: "{{ tpl .Values.busybox.image.imageUrl . }}:{{ .Values.busybox.image.imageTag }}"
       imagePullPolicy: IfNotPresent
-      command: ['sh', '-c', 'chmod 777 /tmp/spark-local-dir']
+      command: ['sh', '-c', 'chmod 777 /tmp/spark-local-dir-*']
       securityContext:
         runAsUser: 0
       volumeMounts:
-      - name: "spark-local-dir-executor"
-        mountPath: "/tmp/spark-local-dir"
+      {{- range $i := until (int .Values.firewall.numVolumes) }}
+      - name: "spark-local-dir-{{ add1 $i }}"
+        mountPath: "/tmp/spark-local-dir-{{ add1 $i }}"
+      {{- end }}
     {{- end }}

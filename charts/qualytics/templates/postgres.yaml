@@ -59,16 +59,13 @@ spec:
       imagePullSecrets:
         - name: regcred
       terminationGracePeriodSeconds: 10
-      {{- if ( eq .Values.selectors.enabled true ) }}
+      {{- if .Values.appNodeSelector }}
       nodeSelector:
-        appNodes: "true"
+        {{- toYaml .Values.appNodeSelector | nindent 8 }}
       {{- end }}
-      {{- if ( eq .Values.tolerations.enabled true ) }}
+      {{- if .Values.tolerations.appNodeTolerations }}
       tolerations:
-        - key: appNodes
-          operator: Equal
-          value: "true"
-          effect: NoSchedule
+        {{- toYaml .Values.tolerations.appNodeTolerations | nindent 8 }}
       {{- end }}
       containers:
       - name: postgres

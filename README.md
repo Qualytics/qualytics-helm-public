@@ -20,17 +20,19 @@ Qualytics fully supports kubernetes clusters hosted in AWS, GCP, and Azure as we
 
 Node(s) with the following labels must be made available:
 - `appNodes=true`
-- `sparkNodes=true`
+- `driverNodes=true`
+- `executorNodes=true`
 
-Nodes with the `sparkNodes=true` label will be used for Spark jobs and nodes with the `appNodes=true` label will be used for all other needs.  It is possible to provide a single node with both labels if that node provides sufficient resources to operate the entire cluster according to the specified chart values.  However, it is highly recommended to setup autoscaling for Apache Spark operations by providing a group of nodes with the `sparkNodes=true` label that will grow on demand.
+Nodes with the `driverNodes=true`and `executorNodes=true` labels will be used for Spark jobs, while nodes with the `appNodes=true` label will be used for all other needs. Users have the flexibility to merge the `driverNodes=true` and `executorNodes=true` labels into a single label, `sparkNodes=true`, within the same node group, as long as the provided node can supply sufficient resources to handle both Spark driver and executors. Alternatively, users may choose not to use node selectors at all, allowing the entire cluster to be used without targeting specific node groups. However, it is highly recommended to set up autoscaling for Apache Spark operations by providing separate node groups with the `driverNodes=true` and `executorNodes=true` labels to ensure optimal performance and scalability.
 
-|          |          Application Nodes          |                  Spark Nodes                    |
-|----------|:-----------------------------------:|:-----------------------------------------------:|
-| Label    | appNodes=true                       | sparkNodes=true                                 |
-| Scaling  | Fixed (1 node on-demand)            | Autoscaling (2 - 11 nodes spot)                 |
-| EKS      | t3.2xlarge                          | r5d.xlarge                                      |
-| GKE      | n2-standard-8                       | c2d-highmem-4                                   |
-| AKS      | Standard_D8_v5                      | Standard_E4s_v5                                 |
+|          |          Application Nodes          |               Spark Driver Nodes                |            Spark Executor Nodes            |
+|----------|:-----------------------------------:|:-----------------------------------------------:|:------------------------------------------:|
+| Label    | appNodes=true                       | driverNodes=true                                | executorNodes=true                         |
+| Scaling  | Autoscaling (1 node on-demand)      | Autoscaling (1 node on-demand)                  | Autoscaling (1 - 12 nodes spot)            |
+| EKS      | t3.2xlarge (8 vCPUs, 32 GB)         | r5.2xlarge (8 vCPUs, 64 GB)                     | r5d.2xlarge (8 vCPUs, 64 GB)               |
+| GKE      | n2-standard-8 (8 vCPUs, 32 GB)      | n2-highmem-8 (8 vCPUs, 64 GB)                   | n2-highmem-8 (8 vCPUs, 64 GB)              |
+| AKS      | Standard_D8_v5 (8 vCPUs, 32 GB)     | Standard_E8s_v5 (8 vCPUs, 64 GB)                | Standard_E8s_v5 (8 vCPUs, 64 GB)           |
+
 
 #### Docker Registry Secrets
 
