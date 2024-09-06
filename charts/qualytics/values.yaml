@@ -114,13 +114,13 @@ tolerations:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20240903-fb9467d"
+    firewallImageTag: "20240906-468ebbf"
 hubImage:
   image:
-    hubImageTag: "20240903-ff1e29d"
+    hubImageTag: "20240906-d3784a0"
 frontendImage:
   image:
-    frontendImageTag: "20240903-ad0ff29"
+    frontendImageTag: "20240906-f561fb6"
 
 #--------------------------------------------------------------------------------
 # Firewall configuration
