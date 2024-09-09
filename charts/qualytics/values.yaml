@@ -81,15 +81,15 @@ storageClass:
   name: ""
 
 # Node scheduling
-appNodeSelector:
-  appNodes: "true"
-# appNodeSelector: {}
-driverNodeSelector:
-  driverNodes: "true"
-# driverNodeSelector: {}
-executorNodeSelector:
-  executorNodes: "true"
-# executorNodeSelector: {}
+appNodeSelector: {}
+# appNodeSelector:
+#   appNodes: "true"
+driverNodeSelector: {}
+# driverNodeSelector:
+#   driverNodes: "true"
+executorNodeSelector: {}
+# executorNodeSelector:
+#   executorNodes: "true"
 
 tolerations:
   appNodeTolerations: []
