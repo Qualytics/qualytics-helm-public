@@ -2,8 +2,8 @@ apiVersion: v2
 name: qualytics
 description: A Helm chart for deploying Qualytics on Kubernetes
 type: application
-version: 2024.09.09
-appVersion: 2024.09.06
+version: 2024.09.10
+appVersion: 2024.09.10
 dependencies:
 - name: spark-operator
   version: 1.4.0
