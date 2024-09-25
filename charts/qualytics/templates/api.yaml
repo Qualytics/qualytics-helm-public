@@ -57,6 +57,7 @@ spec:
             value: {{ .Values.hub.smtp.port | quote }}
           - name: SMTP_SENDER_EMAIL
             value: {{ .Values.hub.smtp.sender | quote }}
+          {{- if and .Values.secrets.smtp.smtp_sender_user .Values.secrets.smtp.smtp_sender_password }}
           - name: SMTP_SENDER_USER
             valueFrom:
               secretKeyRef:
@@ -67,6 +68,7 @@ spec:
               secretKeyRef:
                 name: qualytics-creds
                 key: smtp_sender_password
+          {{- end }}
          {{- end }}
           - name: API_ROOT_PATH
             value: /api

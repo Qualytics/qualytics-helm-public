@@ -95,6 +95,44 @@ frontendImage:
     frontendImageTag: "latest"
 
 #--------------------------------------------------------------------------------
+# Secrets
+#--------------------------------------------------------------------------------
+secrets:
+  auth0: # required for authType AUTH0 (the default)
+    auth0_domain: auth.qualytics.io
+    auth0_audience: changeme-api
+    auth0_organization: org_changeme
+    auth0_spa_client_id: spa_client_id
+  oidc: # required for authType OIDC
+    oidc_scopes: oidc_scopes
+    oidc_authorization_endpoint: oidc_authorization_endpoint
+    oidc_token_endpoint: oidc_token_endpoint
+    oidc_userinfo_endpoint: oidc_userinfo_endpoint
+    oidc_client_id: oidc_client_id
+    oidc_client_secret: oidc_client_secret
+    oidc_user_id_key: oidc_user_id_key
+    oidc_user_email_key: oidc_user_email_key
+    oidc_user_name_key: oidc_user_name_key
+    oidc_user_fname_key: oidc_user_fname_key
+    oidc_user_lname_key: oidc_user_lname_key
+    oidc_user_picture_key: oidc_user_picture_key
+    oidc_user_provider_key: oidc_user_provider_key
+  auth:
+    jwt_signing_secret: ChangeMe!
+  postgres:
+    host: postgres
+    port: 5432
+    database: surveillance_hub
+    username: postgres
+    password: postgres
+    secrets_passphrase: ChangeMe!
+  smtp:
+    smtp_sender_user: smtp_user
+    smtp_sender_password: smtp_password
+  rabbitmq:
+    rabbitmq_password: ChangeMe!
+
+#--------------------------------------------------------------------------------
 # Firewall configuration
 #--------------------------------------------------------------------------------
 firewall:
@@ -195,41 +233,3 @@ busybox:
   image:
     imageUrl: "busybox"
     imageTag: "latest"
-
-#--------------------------------------------------------------------------------
-# Busybox
-#--------------------------------------------------------------------------------
-secrets:
-  auth0: # required for authType AUTH0 (the default)
-    auth0_domain: auth.qualytics.io
-    auth0_audience: changeme-api
-    auth0_organization: org_changeme
-    auth0_spa_client_id: spa_client_id
-  oidc: # required for authType OIDC
-    oidc_scopes: oidc_scopes
-    oidc_authorization_endpoint: oidc_authorization_endpoint
-    oidc_token_endpoint: oidc_token_endpoint
-    oidc_userinfo_endpoint: oidc_userinfo_endpoint
-    oidc_client_id: oidc_client_id
-    oidc_client_secret: oidc_client_secret
-    oidc_user_id_key: oidc_user_id_key
-    oidc_user_email_key: oidc_user_email_key
-    oidc_user_name_key: oidc_user_name_key
-    oidc_user_fname_key: oidc_user_fname_key
-    oidc_user_lname_key: oidc_user_lname_key
-    oidc_user_picture_key: oidc_user_picture_key
-    oidc_user_provider_key: oidc_user_provider_key
-  auth:
-    jwt_signing_secret: ChangeMe!
-  postgres:
-    host: postgres
-    port: 5432
-    database: surveillance_hub
-    username: postgres
-    password: postgres
-    secrets_passphrase: ChangeMe!
-  smtp:
-    smtp_sender_user: smtp_user
-    smtp_sender_password: smtp_password
-  rabbitmq:
-    rabbitmq_password: ChangeMe!
