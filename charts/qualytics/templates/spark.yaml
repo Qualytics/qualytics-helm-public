@@ -61,6 +61,15 @@ spec:
        -Dlog4j.configuration=file:/opt/spark/log4j.properties
        -Dconfig.resource=prod.conf
        -Djava.library.path=/opt/spark/libs/
+       -Duser.timezone=UTC
+       -Dmother.rabbit_mq_host={{ .Release.Name }}-rabbitmq
+       -Dmother.rabbit_mq_user=user
+       -Dmother.rabbit_mq_pass={{ .Values.secrets.rabbitmq.rabbitmq_password }}
+       -Dmother.use_cache={{ .Values.firewall.useCache }}
+       -Dmother.max_executors={{ .Values.firewall.maxExecutors }}
+       -Dmother.num_cores_per_executor={{ .Values.firewall.numCoresPerExecutor }}
+       -Dmother.max_memory_per_executor={{ .Values.firewall.maxMemoryPerExecutor }}
+       -Dmother.libpostal_data_path={{ .Values.firewall.libpostalDataPath }}
        -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
 #--------------------------------------------------------------------------------
 # Environments that require a proxy (Http, Socks, etc..) for egress
@@ -121,7 +130,9 @@ spec:
     memory: {{ .memory }}
     {{- end }}
     javaOptions:
-      "-Dlog4j.configuration=file:/opt/spark/log4j.properties -Djava.library.path=/opt/spark/libs/
+      "-Dlog4j.configuration=file:/opt/spark/log4j.properties 
+       -Djava.library.path=/opt/spark/libs/
+       -Duser.timezone=UTC
        -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
     labels:
       version: {{ .Values.firewall.sparkVersion }}
