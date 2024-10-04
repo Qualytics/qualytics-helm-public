@@ -83,6 +83,8 @@ spec:
   mode: cluster
   image: "{{ tpl .Values.global.imageUrls.firewallImageUrl . }}:{{ .Values.firewallImage.image.firewallImageTag }}"
   imagePullPolicy: IfNotPresent
+  imagePullSecrets:
+    - regcred
   restartPolicy:
     type: Always
     onFailureRetries: 1000
@@ -92,29 +94,60 @@ spec:
   mainClass: io.qualytics.firewall.SparkMothership
   mainApplicationFile: "local:///opt/spark/jars/firewall-core.jar"
   sparkVersion: {{ .Values.firewall.sparkVersion }}
+  sparkConf:
+    spark.eventLog.enabled: {{ .Values.firewall.eventLog | quote }}
+    spark.kubernetes.memoryOverheadFactor: {{ .Values.firewall.memoryOverheadFactor | quote }}
+    spark.kubernetes.submission.connectionTimeout: "480000"
+    spark.kubernetes.submission.requestTimeout: "480000"
+    spark.kubernetes.driver.connectionTimeout: "480000"
+    spark.kubernetes.driver.requestTimeout: "480000"
   driver:
-    cores: {{ .Values.firewall.driver.cores }}
-    coreLimit: {{ .Values.firewall.driver.coreLimit }}
-    memory: {{ .Values.firewall.driver.memory }}
+{{- $resources := .Values.firewall -}}
+    {{- with $resources.driver }}
+    cores: {{ .cores }}
+    coreLimit: {{ .coreLimit }}
+    memory: {{ .memory }}
+    {{- end }}
     javaOptions:
-      "-Dmother.rabbit_mq_host={{ .Release.Name }}-rabbitmq
+      "-Divy.cache.dir=/tmp
+       -Divy.home=/tmp
+       -Dlog4j.configuration=file:/opt/spark/log4j.properties
+       -Dconfig.resource=prod.conf
+       -Djava.library.path=/opt/spark/libs/
+       -Duser.timezone=UTC
+       -Dmother.rabbit_mq_host={{ .Release.Name }}-rabbitmq
        -Dmother.rabbit_mq_user=user
        -Dmother.rabbit_mq_pass={{ .Values.secrets.rabbitmq.rabbitmq_password }}
        -Dmother.use_cache={{ .Values.firewall.useCache }}
        -Dmother.max_executors={{ .Values.firewall.maxExecutors }}
        -Dmother.num_cores_per_executor={{ .Values.firewall.numCoresPerExecutor }}
        -Dmother.max_memory_per_executor={{ .Values.firewall.maxMemoryPerExecutor }}
-       -Dmother.libpostal_data_path={{ .Values.firewall.libpostalDataPath }}"
+       -Dmother.libpostal_data_path={{ .Values.firewall.libpostalDataPath }}
+       -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
+    labels:
+      version: {{ .Values.firewall.sparkVersion }}
+    serviceAccount: {{ .Release.Name }}-spark
+  dynamicAllocation:
+    {{- with $resources.dynamicAllocation }}
+    enabled: true
+    initialExecutors: {{ .initialExecutors }}
+    minExecutors: {{ .minExecutors }}
+    maxExecutors: {{ .maxExecutors }}
+    {{- end }}
   executor:
-    instances: {{ .Values.firewall.executor.instances }}
-    cores: {{ .Values.firewall.executor.cores }}
-    coreLimit: {{ .Values.firewall.executor.coreLimit }}
-    memory: {{ .Values.firewall.executor.memory }}
+    {{- with $resources.executor }}
+    instances: {{ .instances }}
+    cores: {{ .cores }}
+    coreLimit: {{ .coreLimit }}
+    memory: {{ .memory }}
+    {{- end }}
     javaOptions:
       "-Dlog4j.configuration=file:/opt/spark/log4j.properties 
        -Djava.library.path=/opt/spark/libs/
        -Duser.timezone=UTC
        -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
+    labels:
+      version: {{ .Values.firewall.sparkVersion }}
 ```
 
 ## Conclusion
