@@ -7,17 +7,31 @@
 #--------------------------------------------------------------------------------
 sparkoperator:
   enabled: true
-  metrics:
-    enable: false
+  prometheus:
+    metrics:
+      enable: false
+  controller:
+    nodeSelector:
+      appNodes: "true"
+    # tolerations:
+    #   - key: appNodes
+    #     operator: Equal
+    #     value: "true"
+    #     effect: NoSchedule
   webhook:
     enable: true
-  nodeSelector:
-    appNodes: "true"
-  # tolerations:
-  #   - key: appNodes
-  #     operator: Equal
-  #     value: "true"
-  #     effect: NoSchedule
+    nodeSelector:
+      appNodes: "true"
+    # tolerations:
+    #   - key: appNodes
+    #     operator: Equal
+    #     value: "true"
+    #     effect: NoSchedule
+  spark:
+    jobNamespaces:
+    - "qualytics" # Set to qualytics target namespace
+    serviceAccount:
+      name: "qualytics-spark"
 
 nginx:
   enabled: false

@@ -106,7 +106,7 @@ spec:
         value: {{ .Values.firewall.libpostalDataPath | quote  }}
     labels:
       version: {{ .Values.firewall.sparkVersion }}
-    serviceAccount: {{ .Release.Name }}-spark
+    serviceAccount: {{ .Values.sparkoperator.spark.serviceAccount.name }}
   dynamicAllocation:
     {{- with $resources.dynamicAllocation }}
     enabled: true
