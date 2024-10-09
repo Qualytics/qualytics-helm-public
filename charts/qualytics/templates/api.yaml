@@ -84,9 +84,11 @@ spec:
               secretKeyRef:
                 name: qualytics-creds
                 key: jwt_signing_secret
-          {{- if ( eq .Values.hub.authType "OIDC" ) }}
+          {{- if ( eq .Values.global.authType "OIDC" ) }}
           - name: API_AUTH
             value: OIDC
+          - name: OIDC_REDIRECT_URL
+            value: {{ printf "https://%s/callback" .Values.global.dnsRecord }}
           - name: OIDC_SCOPES
             valueFrom:
               secretKeyRef:

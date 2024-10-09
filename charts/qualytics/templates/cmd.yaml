@@ -35,7 +35,7 @@ spec:
             memory: {{ .Values.hubCmd.resources.memory | quote }}
             cpu: {{ .Values.hubCmd.resources.cpu| quote }}
         env:
-          {{- if ( eq .Values.hub.authType "OIDC" ) }}
+          {{- if ( eq .Values.global.authType "OIDC" ) }}
           - name: API_AUTH
             value: OIDC
           {{- else }}

@@ -84,6 +84,7 @@ ingress:
 global:
   platform: "aws"
   dnsRecord: "changeme.qualytics.io"
+  authType: "AUTH0"
   imageUrls:
     firewallImageUrl: "qualyticsai/firewall-prod"
     hubImageUrl: "qualyticsai/hub-prod"
@@ -212,7 +213,6 @@ firewall:
 #--------------------------------------------------------------------------------
 hub:
   replicas: 6
-  authType: "AUTH0"
   ingress:
     path: "/api/?(.*)"
     servicePort: "8000"
