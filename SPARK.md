@@ -27,7 +27,12 @@ javaOptions:
    -Dmother.max_executors={{ .Values.firewall.maxExecutors }}
    -Dmother.num_cores_per_executor={{ .Values.firewall.numCoresPerExecutor }}
    -Dmother.max_memory_per_executor={{ .Values.firewall.maxMemoryPerExecutor }}
-   -Dmother.libpostal_data_path={{ .Values.firewall.libpostalDataPath }}"
+   -Dmother.libpostal_data_path={{ .Values.firewall.libpostalDataPath }}
+   -Dkubernetes.master=https://kubernetes.default.svc
+   -Dkubernetes.namespace=default
+   -Dkubernetes.serviceaccount.name=spark-driver
+   -Dkubernetes.auth.mountPath=/var/run/secrets/kubernetes.io/serviceaccount
+   -Dkubernetes.trust.certificates=true
 ```
 
 ### 2. No Node Selectors, Tolerations, or Volumes
@@ -122,11 +127,16 @@ spec:
        -Dmother.max_executors={{ .Values.firewall.maxExecutors }}
        -Dmother.num_cores_per_executor={{ .Values.firewall.numCoresPerExecutor }}
        -Dmother.max_memory_per_executor={{ .Values.firewall.maxMemoryPerExecutor }}
-       -Dmother.libpostal_data_path={{ .Values.firewall.libpostalDataPath }}
+       -Dmother.libpostal_data_path={{ .Values.firewall.libpostalDataPath }}              
+       -Dkubernetes.serviceaccount.name={{ .Values.sparkoperator.spark.serviceAccount.name }}
+       -Dkubernetes.namespace=default
+       -Dkubernetes.master=https://kubernetes.default.svc
+       -Dkubernetes.auth.mountPath=/var/run/secrets/kubernetes.io/serviceaccount
+       -Dkubernetes.trust.certificates=true
        -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
     labels:
       version: {{ .Values.firewall.sparkVersion }}
-    serviceAccount: {{ .Release.Name }}-spark
+    serviceAccount: {{ .Values.sparkoperator.spark.serviceAccount.name }}
   dynamicAllocation:
     {{- with $resources.dynamicAllocation }}
     enabled: true
