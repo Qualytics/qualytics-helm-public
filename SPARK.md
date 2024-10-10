@@ -27,12 +27,7 @@ javaOptions:
    -Dmother.max_executors={{ .Values.firewall.maxExecutors }}
    -Dmother.num_cores_per_executor={{ .Values.firewall.numCoresPerExecutor }}
    -Dmother.max_memory_per_executor={{ .Values.firewall.maxMemoryPerExecutor }}
-   -Dmother.libpostal_data_path={{ .Values.firewall.libpostalDataPath }}
-   -Dkubernetes.master=https://kubernetes.default.svc
-   -Dkubernetes.namespace=default
-   -Dkubernetes.serviceaccount.name=spark-driver
-   -Dkubernetes.auth.mountPath=/var/run/secrets/kubernetes.io/serviceaccount
-   -Dkubernetes.trust.certificates=true
+   -Dmother.libpostal_data_path={{ .Values.firewall.libpostalDataPath }}   
 ```
 
 ### 2. No Node Selectors, Tolerations, or Volumes
@@ -106,6 +101,12 @@ spec:
     spark.kubernetes.submission.requestTimeout: "480000"
     spark.kubernetes.driver.connectionTimeout: "480000"
     spark.kubernetes.driver.requestTimeout: "480000"
+    spark.kubernetes.authenticate.driver.caCertFile: "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+    spark.kubernetes.authenticate.driver.oauthToken: "/var/run/secrets/kubernetes.io/serviceaccount/token"
+    spark.kubernetes.authenticate.driver.serviceAccountName: {{ .Values.sparkoperator.spark.serviceAccount.name }}
+    spark.kubernetes.authenticate.submission.caCertFile: "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+    spark.kubernetes.authenticate.submission.oauthToken: "/var/run/secrets/kubernetes.io/serviceaccount/token"
+    spark.kubernetes.authenticate.submission.serviceAccountName: {{ .Values.sparkoperator.spark.serviceAccount.name }}
   driver:
 {{- $resources := .Values.firewall -}}
     {{- with $resources.driver }}
@@ -127,12 +128,7 @@ spec:
        -Dmother.max_executors={{ .Values.firewall.maxExecutors }}
        -Dmother.num_cores_per_executor={{ .Values.firewall.numCoresPerExecutor }}
        -Dmother.max_memory_per_executor={{ .Values.firewall.maxMemoryPerExecutor }}
-       -Dmother.libpostal_data_path={{ .Values.firewall.libpostalDataPath }}              
-       -Dkubernetes.serviceaccount.name={{ .Values.sparkoperator.spark.serviceAccount.name }}
-       -Dkubernetes.namespace=default
-       -Dkubernetes.master=https://kubernetes.default.svc
-       -Dkubernetes.auth.mountPath=/var/run/secrets/kubernetes.io/serviceaccount
-       -Dkubernetes.trust.certificates=true
+       -Dmother.libpostal_data_path={{ .Values.firewall.libpostalDataPath }}                     
        -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
     labels:
       version: {{ .Values.firewall.sparkVersion }}
