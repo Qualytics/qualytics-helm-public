@@ -141,6 +141,7 @@ spec:
     maxExecutors: {{ .maxExecutors }}
     {{- end }}
   executor:
+    serviceAccount: {{ .Values.sparkoperator.spark.serviceAccount.name }}
     {{- with $resources.executor }}
     instances: {{ .instances }}
     cores: {{ .cores }}
