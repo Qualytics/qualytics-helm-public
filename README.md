@@ -80,4 +80,4 @@ Yes. The only egress requirement for a standard self-hosted Qualytics deployment
 
 ## Additional Documentation
 
-- [Qualytics UserGuide](https://qualytics.github.io/userguide/)
+- [Qualytics UserGuide](https://userguide.qualytics.io/upgrades/qualytics-single-tenant-instance/)
