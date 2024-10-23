@@ -117,6 +117,7 @@ secrets:
     oidc_user_lname_key: oidc_user_lname_key
     oidc_user_picture_key: oidc_user_picture_key
     oidc_user_provider_key: oidc_user_provider_key
+    oidc_allow_insecure_transport: false
   auth:
     jwt_signing_secret: ChangeMe!
   postgres:
@@ -179,6 +180,8 @@ hub:
     server: "email-smtp.us-east-1.amazonaws.com"
     sender: "no-reply@qualytics.co"
     port: "465"
+  egress:
+    verifyTLSCertificates: true # Controls certificate validation for all requests, httpx, and smtp_ssl sessions
 
 hubCmd:
   resources:

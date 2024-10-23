@@ -154,6 +154,8 @@ spec:
               secretKeyRef:
                 name: qualytics-creds
                 key: oidc_user_provider_key
+          - name: OIDC_ALLOW_INSECURE_HTTP
+            value: { { .Values.secrets.oidc.oidc_allow_insecure_transport | quote } }
           {{- else }}
           - name: API_AUTH
             value: AUTH0
@@ -179,6 +181,9 @@ spec:
               secretKeyRef:
                 name: qualytics-creds
                 key: rabbitmq_password
+          - name: VERIFY_CERTIFICATE_SIGNERS
+            value: { { .Values.hub.egress.verifyTLSCertificates | quote } }
+
 #--------------------------------------------------------------------------------
 # Environments that require a proxy (Http, Socks, etc..) for egress
 #--------------------------------------------------------------------------------
