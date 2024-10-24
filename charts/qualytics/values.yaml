@@ -132,7 +132,7 @@ firewallImage:
     firewallImageTag: "20241023-d135993"
 hubImage:
   image:
-    hubImageTag: "20241023-41fd0d5"
+    hubImageTag: "20241024-e7e804a"
 frontendImage:
   image:
     frontendImageTag: "20241023-dc019ca"
