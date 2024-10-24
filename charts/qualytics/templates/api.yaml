@@ -155,7 +155,7 @@ spec:
                 name: qualytics-creds
                 key: oidc_user_provider_key
           - name: OIDC_ALLOW_INSECURE_HTTP
-            value: { { .Values.secrets.oidc.oidc_allow_insecure_transport | quote } }
+            value: {{ .Values.secrets.oidc.oidc_allow_insecure_transport | quote }}
           {{- else }}
           - name: API_AUTH
             value: AUTH0

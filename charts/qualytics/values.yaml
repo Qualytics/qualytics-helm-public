@@ -129,13 +129,13 @@ tolerations:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20241016-35fdcef"
+    firewallImageTag: "20241023-d135993"
 hubImage:
   image:
-    hubImageTag: "20241016-850eff1"
+    hubImageTag: "20241023-41fd0d5"
 frontendImage:
   image:
-    frontendImageTag: "20241016-cf754a2"
+    frontendImageTag: "20241023-dc019ca"
 
 #--------------------------------------------------------------------------------
 # Secrets
@@ -225,8 +225,9 @@ hub:
     server: "email-smtp.us-east-1.amazonaws.com"
     sender: "no-reply@qualytics.co"
     port: "465"
+  # Controls certificate validation for all requests, httpx, and smtp_ssl sessions
   egress:
-    verifyTLSCertificates: true # Controls certificate validation for all requests, httpx, and smtp_ssl sessions
+    verifyTLSCertificates: true
 
 hubCmd:
   resources:
