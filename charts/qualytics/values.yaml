@@ -129,10 +129,10 @@ tolerations:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20241023-d135993"
+    firewallImageTag: "20241028-ca3f3e8"
 hubImage:
   image:
-    hubImageTag: "20241024-e7e804a"
+    hubImageTag: "20241028-1c168b9"
 frontendImage:
   image:
     frontendImageTag: "20241023-dc019ca"
