@@ -161,6 +161,7 @@ secrets:
     oidc_user_picture_key: oidc_user_picture_key
     oidc_user_provider_key: oidc_user_provider_key
     oidc_allow_insecure_transport: false
+    #oidc_signer_pem_url: "https://www.digicert.com/CACerts/DigiCertGlobalRootG2.crt.pem"
   auth:
     jwt_signing_secret: ChangeMe!
   postgres:
