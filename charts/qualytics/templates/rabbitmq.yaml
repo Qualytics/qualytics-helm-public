@@ -10,6 +10,7 @@ data:
     loopback_users.user = false
     listeners.tcp.default = 5672
     consumer_timeout = 3600000 # 60 minutes in milliseconds
+    max_message_size = 268435456  # 256 MB
 
 ---
 apiVersion: v1
