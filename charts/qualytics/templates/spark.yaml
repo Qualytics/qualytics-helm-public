@@ -94,8 +94,8 @@ spec:
       - name: MOTHERSHIP_THREAD_POOL_PARALLELISM
         value: {{ .Values.firewall.threadPoolParallelism | quote }}
     {{- end }}
-      - name: MOTHERSHIP_USE_CACHE
-        value: {{ .Values.firewall.useCache | quote }}
+      - name: MOTHERSHIP_RABBIT_USE_CHANNEL_POOL
+        value: {{ .Values.firewall.rabbitmqPoolChannels | quote }}
       - name: MOTHERSHIP_MAX_EXECUTORS
         value: {{ .Values.firewall.maxExecutors | int | quote }}
       - name: MOTHERSHIP_NUM_CORES_PER_EXECUTOR

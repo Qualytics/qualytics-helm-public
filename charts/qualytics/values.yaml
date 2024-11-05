@@ -184,7 +184,7 @@ secrets:
 firewall:
   sparkVersion: "3.5.3"
   eventLog: false
-  useCache: true
+  rabbitmqPoolChannels: true
   useVolumes: false
   numVolumes: 1
   threadPoolParallelism: -1
