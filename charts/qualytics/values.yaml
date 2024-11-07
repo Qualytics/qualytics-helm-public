@@ -179,7 +179,7 @@ firewall:
   sparkVersion: "3.5.3"
   eventLog: false
   rabbitmqPoolChannels: true
-  numVolumes: 10
+  numVolumes: -1
   threadPoolParallelism: -1
   maxExecutors: 12
   numCoresPerExecutor: 7
