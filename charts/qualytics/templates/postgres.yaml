@@ -217,8 +217,14 @@ spec:
         spec:
           imagePullSecrets:
             - name: regcred
+          {{- if .Values.appNodeSelector }}
           nodeSelector:
-            appNodes: "true"
+            {{- toYaml .Values.appNodeSelector | nindent 12 }}
+          {{- end }}
+          {{- if .Values.tolerations.appNodeTolerations }}
+          tolerations:
+            {{- toYaml .Values.tolerations.appNodeTolerations | nindent 12 }}
+          {{- end }}
           containers:
           - name: db-maintenance
             env:

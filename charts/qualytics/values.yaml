@@ -11,8 +11,8 @@ sparkoperator:
     metrics:
       enable: false
   controller:
-    nodeSelector:
-      appNodes: "true"
+    nodeSelector: {}
+    #   appNodes: "true"
     # tolerations:
     #   - key: appNodes
     #     operator: Equal
@@ -20,8 +20,8 @@ sparkoperator:
     #     effect: NoSchedule
   webhook:
     enable: true
-    nodeSelector:
-      appNodes: "true"
+    nodeSelector: {}
+    #   appNodes: "true"
     # tolerations:
     #   - key: appNodes
     #     operator: Equal
@@ -36,8 +36,8 @@ sparkoperator:
 nginx:
   enabled: false
   controller:
-    nodeSelector:
-      appNodes: "true"
+    nodeSelector: {}
+    #   appNodes: "true"
     # tolerations:
     #   - key: appNodes
     #     operator: Equal
@@ -61,8 +61,8 @@ certmanager:
   enabled: false
   registeredEmail: "devops@qualytics.co"
   installCRDs: "true"
-  nodeSelector:
-    appNodes: "true"
+  nodeSelector: {}
+  #   appNodes: "true"
   # tolerations:
   #   - key: appNodes
   #     operator: Equal
@@ -97,30 +97,24 @@ storageClass:
 
 # Node scheduling
 appNodeSelector: {}
-# appNodeSelector:
 #   appNodes: "true"
 driverNodeSelector: {}
-# driverNodeSelector:
 #   driverNodes: "true"
 executorNodeSelector: {}
-# executorNodeSelector:
 #   executorNodes: "true"
 
 tolerations:
   appNodeTolerations: []
-  # appNodeTolerations:
   #     - key: appNodes
   #       operator: Equal
   #       value: "true"
   #       effect: NoSchedule
   driverNodeTolerations: []
-  # driverNodeTolerations:
   #     - key: driverNodes
   #       operator: Equal
   #       value: "true"
   #       effect: NoSchedule
   executorNodeTolerations: []
-  # executorNodeTolerations:
   #     - key: executorNodes
   #       operator: Equal
   #       value: "true"
@@ -161,7 +155,7 @@ secrets:
     oidc_user_picture_key: oidc_user_picture_key
     oidc_user_provider_key: oidc_user_provider_key
     oidc_allow_insecure_transport: false
-    #oidc_signer_pem_url: "https://www.digicert.com/CACerts/DigiCertGlobalRootG2.crt.pem"
+    # oidc_signer_pem_url: "https://www.digicert.com/CACerts/DigiCertGlobalRootG2.crt.pem"
   auth:
     jwt_signing_secret: ChangeMe!
   postgres:
@@ -185,8 +179,7 @@ firewall:
   sparkVersion: "3.5.3"
   eventLog: false
   rabbitmqPoolChannels: true
-  useVolumes: false
-  numVolumes: 1
+  numVolumes: 10
   threadPoolParallelism: -1
   maxExecutors: 12
   numCoresPerExecutor: 7
@@ -274,7 +267,7 @@ rabbitmq:
     storageSize: "10Gi"
   image:
     imageUrl: "rabbitmq"
-    imageTag: "3.13-management"
+    imageTag: "4.0-management"
   resources:
     memory: "1Gi"
     cpu: "500m"

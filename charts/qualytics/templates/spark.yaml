@@ -25,7 +25,7 @@ spec:
     spark.kubernetes.submission.requestTimeout: "480000"
     spark.kubernetes.driver.connectionTimeout: "480000"
     spark.kubernetes.driver.requestTimeout: "480000"
-  {{- if .Values.firewall.useVolumes }}
+  {{- if gt ( .Values.firewall.numVolumes | int ) 0 }}
   volumes:
     {{- range $i := until (int .Values.firewall.numVolumes) }}
     - name: "spark-local-dir-{{ add1 $i }}"
@@ -136,7 +136,7 @@ spec:
     tolerations:
       {{- toYaml .Values.tolerations.executorNodeTolerations | nindent 6 }}
     {{- end }}
-    {{- if .Values.firewall.useVolumes }}
+    {{- if gt ( .Values.firewall.numVolumes | int ) 0 }}
     volumeMounts:
       {{- range $i := until (int .Values.firewall.numVolumes) }}
       - name: "spark-local-dir-{{ add1 $i }}"
