@@ -123,10 +123,10 @@ tolerations:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20241129-02b3fd4"
+    firewallImageTag: "20241204-58762ba"
 hubImage:
   image:
-    hubImageTag: "20241129-333a9b7"
+    hubImageTag: "20241204-0d48169"
 frontendImage:
   image:
     frontendImageTag: "20241129-4073a9c"
@@ -248,13 +248,13 @@ postgres:
   pvc:
     storageSize: "100Gi"
     backupVolumeStorageSize: "50Gi"
-  image:
-    imageUrl: "postgres"
-    imageTag: "16"
-  # Use this image for auto upgrade
   # image:
-  #   imageUrl: "pgautoupgrade/pgautoupgrade"
-  #   imageTag: "16-bookworm"
+  #   imageUrl: "postgres"
+  #   imageTag: "17"
+  # Use this image for auto upgrade
+  image:
+    imageUrl: "pgautoupgrade/pgautoupgrade"
+    imageTag: "17-bookworm"
   resources:
     memory: "10Gi"
     cpu: "2000m"
