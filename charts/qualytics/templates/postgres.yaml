@@ -242,15 +242,22 @@ spec:
             - "-c"
             - |
               printf "Running VACUUM and ANALYZE on database\n"
-              psql $DATABASE_URL -c "VACUUM;"
+              psql $DATABASE_URL -c "VACUUM VERBOSE;"
               psql $DATABASE_URL -c "ANALYZE;"
-              
+
               # Add REINDEX for weekly maintenance on Sundays
               if [ "$(date +%u)" -eq 7 ]; then
-                printf "Running REINDEX DATABASE\n"
-                psql $DATABASE_URL -c "REINDEX DATABASE surveillance_hub;"
+                printf "Running REINDEX on tables CONCURRENTLY\n"
+                TABLES=$(psql $DATABASE_URL -t -c "
+                  SELECT '\"' || schemaname || '\".\"' || tablename || '\"'
+                  FROM pg_tables 
+                  WHERE schemaname = 'public';")
+                for table in $TABLES; do
+                  printf "Reindexing table: $table\n"
+                  psql $DATABASE_URL -c "REINDEX TABLE CONCURRENTLY $table;"
+                done
               fi
-              
+
               printf "Database maintenance completed\n"
           restartPolicy: OnFailure
 {{- end }}

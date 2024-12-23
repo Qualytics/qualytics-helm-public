@@ -123,13 +123,13 @@ tolerations:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20241211-22a39c3"
+    firewallImageTag: "20241223-2c145dc"
 hubImage:
   image:
-    hubImageTag: "20241211-e7c81a2"
+    hubImageTag: "20241223-bf948fa"
 frontendImage:
   image:
-    frontendImageTag: "20241211-9743af8"
+    frontendImageTag: "20241223-f4d6cb4"
 
 #--------------------------------------------------------------------------------
 # Secrets
@@ -176,11 +176,10 @@ secrets:
 # Firewall configuration
 #--------------------------------------------------------------------------------
 firewall:
-  sparkVersion: "3.5.3"
+  sparkVersion: "3.5.4"
   eventLog: false
-  rabbitmqPoolChannels: true
   numVolumes: -1
-  threadPoolParallelism: -1
+  parallelismScaleFactor: -1
   maxExecutors: 12
   numCoresPerExecutor: 7
   maxMemoryPerExecutor: 55000

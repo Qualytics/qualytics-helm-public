@@ -90,9 +90,9 @@ spec:
           secretKeyRef:
             name: qualytics-creds
             key: rabbitmq_password
-    {{- if gt ( .Values.firewall.threadPoolParallelism | int ) 0 }}
-      - name: MOTHERSHIP_THREAD_POOL_PARALLELISM
-        value: {{ .Values.firewall.threadPoolParallelism | quote }}
+    {{- if gt ( .Values.firewall.parallelismScaleFactor | int ) 0 }}
+      - name: MOTHERSHIP_PARALLELISM_SCALE_FACTOR
+        value: {{ .Values.firewall.parallelismScaleFactor | quote }}
     {{- end }}
       - name: MOTHERSHIP_RABBIT_USE_CHANNEL_POOL
         value: {{ .Values.firewall.rabbitmqPoolChannels | quote }}
