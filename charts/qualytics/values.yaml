@@ -86,9 +86,9 @@ global:
   dnsRecord: "changeme.qualytics.io"
   authType: "AUTH0"
   imageUrls:
-    firewallImageUrl: "qualyticsai/firewall-prod"
-    hubImageUrl: "qualyticsai/hub-prod"
-    frontendImageUrl: "qualyticsai/frontend-prod"
+    firewallImageUrl: "qualyticsai/firewall"
+    hubImageUrl: "qualyticsai/hub"
+    frontendImageUrl: "qualyticsai/frontend"
 
 # Storage classes
 storageClass:
@@ -123,13 +123,13 @@ tolerations:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20241223-2c145dc"
+    firewallImageTag: "20250106-4f7b08a"
 hubImage:
   image:
-    hubImageTag: "20241224-0aa7a5a"
+    hubImageTag: "20250106-7866e3a"
 frontendImage:
   image:
-    frontendImageTag: "20241223-f4d6cb4"
+    frontendImageTag: "20250106-55a4d08"
 
 #--------------------------------------------------------------------------------
 # Secrets
