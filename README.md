@@ -40,7 +40,7 @@ Execute the command below using the credentials supplied by your account manager
 
 ```bash
 kubectl create namespace qualytics
-kubectl create secret docker-registry regcred -n qualytics --docker-username=qualyticsread --docker-password=<token>
+kubectl create secret docker-registry regcred -n qualytics --docker-username=qualyticsai --docker-password=<token>
 ```
 
 > [!IMPORTANT]

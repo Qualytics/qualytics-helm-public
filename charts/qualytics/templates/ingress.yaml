@@ -77,7 +77,7 @@ spec:
       http:
         paths:
           - path: {{ .Values.hub.ingress.path | quote }}
-            pathType: Prefix
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: {{ .Release.Name }}-api-service
@@ -145,7 +145,7 @@ spec:
       http:
         paths:
           - path: {{ .Values.frontend.ingress.path | quote }}
-            pathType: Prefix
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: {{ .Release.Name }}-frontend-service
