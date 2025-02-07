@@ -47,6 +47,7 @@ nginx:
       enabled: true
       timeoutSeconds: 30
     config:
+      annotations-risk-level: "Critical"
       allow-snippet-annotations: "true"
       hsts-max-age: "31536000"
     service:
@@ -123,13 +124,13 @@ tolerations:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20250131-d0b7b94"
+    firewallImageTag: "20250206-bb8ec26"
 hubImage:
   image:
-    hubImageTag: "20250204-407e77f"
+    hubImageTag: "20250206-4fe35c2"
 frontendImage:
   image:
-    frontendImageTag: "20250204-1b2130e"
+    frontendImageTag: "20250206-3c9a16b"
 
 #--------------------------------------------------------------------------------
 # Secrets
