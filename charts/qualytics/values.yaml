@@ -127,10 +127,10 @@ firewallImage:
     firewallImageTag: "20250206-bb8ec26"
 hubImage:
   image:
-    hubImageTag: "20250206-4fe35c2"
+    hubImageTag: "20250208-f2d5ad7"
 frontendImage:
   image:
-    frontendImageTag: "20250206-3c9a16b"
+    frontendImageTag: "20250208-5bb1c8e"
 
 #--------------------------------------------------------------------------------
 # Secrets
