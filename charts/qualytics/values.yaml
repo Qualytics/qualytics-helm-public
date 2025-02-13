@@ -124,13 +124,13 @@ tolerations:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20250206-bb8ec26"
+    firewallImageTag: "20250213-f6c2aa9"
 hubImage:
   image:
-    hubImageTag: "20250208-f2d5ad7"
+    hubImageTag: "20250213-c6d8aa6"
 frontendImage:
   image:
-    frontendImageTag: "20250208-5bb1c8e"
+    frontendImageTag: "20250213-66f7f42"
 
 #--------------------------------------------------------------------------------
 # Secrets
@@ -181,6 +181,7 @@ firewall:
   eventLog: false
   numVolumes: -1
   parallelismScaleFactor: -1
+  maxParallelSyncRequests: 3
   maxExecutors: 12
   numCoresPerExecutor: 7
   maxMemoryPerExecutor: 55000

@@ -94,8 +94,8 @@ spec:
       - name: MOTHERSHIP_PARALLELISM_SCALE_FACTOR
         value: {{ .Values.firewall.parallelismScaleFactor | quote }}
     {{- end }}
-      - name: MOTHERSHIP_RABBIT_USE_CHANNEL_POOL
-        value: {{ .Values.firewall.rabbitmqPoolChannels | quote }}
+      - name: MOTHERSHIP_MAX_PARALLEL_SYNC_REQUESTS
+        value: {{ .Values.firewall.maxParallelSyncRequests | quote }}
       - name: MOTHERSHIP_MAX_EXECUTORS
         value: {{ .Values.firewall.maxExecutors | int | quote }}
       - name: MOTHERSHIP_NUM_CORES_PER_EXECUTOR
