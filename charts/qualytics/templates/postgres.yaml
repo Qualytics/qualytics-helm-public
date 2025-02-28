@@ -1,4 +1,18 @@
 {{- if ( eq .Values.postgres.enabled true ) }}
+{{- if and .Values.postgres.tls.enabled .Values.certmanager.enabled }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: postgres-cert
+spec:
+  secretName: postgres-tls
+  dnsNames:
+  - {{ tpl .Values.global.dnsRecord . | quote }}
+  issuerRef:
+    name: letsencrypt
+    kind: ClusterIssuer
+{{- end }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -84,6 +98,14 @@ spec:
           - jit=off
           - -c
           - log_destination=stderr
+          {{- if and .Values.postgres.tls.enabled .Values.certmanager.enabled }}
+          - -c
+          - ssl=on
+          - -c
+          - ssl_cert_file=/etc/ssl/postgresql/tls.crt
+          - -c
+          - ssl_key_file=/etc/ssl/postgresql/tls.key
+          {{- end }}
         image: "{{ tpl .Values.postgres.image.imageUrl . }}:{{ .Values.postgres.image.imageTag }}"
         imagePullPolicy: IfNotPresent
         ports:
@@ -109,6 +131,11 @@ spec:
           mountPath: /mnt/data
         - name: pgshm
           mountPath: /dev/shm
+        {{- if and .Values.postgres.tls.enabled .Values.certmanager.enabled }}
+        - name: postgres-tls
+          mountPath: /etc/ssl/postgresql
+          readOnly: true
+        {{- end }}
       volumes:
         - name: postgres-data-pvc
           persistentVolumeClaim:
@@ -117,6 +144,11 @@ spec:
           emptyDir:
             medium: Memory
             sizeLimit: "4Gi"
+        {{- if and .Values.postgres.tls.enabled .Values.certmanager.enabled }}
+        - name: postgres-tls
+          secret:
+            secretName: postgres-tls
+        {{- end }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -250,7 +282,7 @@ spec:
                 printf "Running REINDEX on tables CONCURRENTLY\n"
                 TABLES=$(psql $DATABASE_URL -t -c "
                   SELECT '\"' || schemaname || '\".\"' || tablename || '\"'
-                  FROM pg_tables 
+                  FROM pg_tables
                   WHERE schemaname = 'public';")
                 for table in $TABLES; do
                   printf "Reindexing table: $table\n"

@@ -246,6 +246,8 @@ frontend:
 #--------------------------------------------------------------------------------
 postgres:
   enabled: true
+  tls:
+    enabled: false
   pvc:
     storageSize: "100Gi"
     backupVolumeStorageSize: "50Gi"
@@ -264,6 +266,9 @@ postgres:
 # RabbitMQ
 #--------------------------------------------------------------------------------
 rabbitmq:
+  tls:
+    enabled: false
+    enableInbound: false
   pvc:
     storageSize: "10Gi"
   image:

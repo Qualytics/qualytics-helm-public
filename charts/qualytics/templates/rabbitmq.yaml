@@ -3,12 +3,24 @@ kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-rabbitmq-config
 data:
-  enabled_plugins: |
+  enabled_plugins: |-
+{{ if and .Values.certmanager.enabled .Values.rabbitmq.tls.enabled }}
+    [rabbitmq_management,rabbitmq_auth_mechanism_ssl].
+{{ else }}
     [rabbitmq_management].
-  rabbitmq.conf: |
+{{ end }}
+  rabbitmq.conf: |-
     default_user = user
     loopback_users.user = false
     listeners.tcp.default = 5672
+{{ if and .Values.certmanager.enabled .Values.rabbitmq.tls.enabled }}
+    # TLS configuration
+    listeners.ssl.default = 5671
+    ssl_options.certfile   = /etc/rabbitmq/tls/tls.crt
+    ssl_options.keyfile    = /etc/rabbitmq/tls/tls.key
+    ssl_options.verify     = verify_peer
+    ssl_options.fail_if_no_peer_cert = false
+{{ end }}
     consumer_timeout = 3600000 # 60 minutes in milliseconds
     max_message_size = 536870912  # 512 mb in bytes
 
@@ -91,6 +103,10 @@ spec:
           name: discovery
         - containerPort: 5672
           name: amqp
+        {{- if and .Values.rabbitmq.tls.enabled .Values.certmanager.enabled }}
+        - containerPort: 5671
+          name: amqp-tls
+        {{- end }}
         resources:
           requests:
             {{- with .Values.rabbitmq.resources }}
@@ -131,6 +147,11 @@ spec:
           mountPath: /config/
         - name: plugins-file
           mountPath: /etc/rabbitmq/
+        {{- if and .Values.rabbitmq.tls.enabled .Values.certmanager.enabled }}
+        - name: rabbitmq-tls
+          mountPath: /etc/rabbitmq/tls/
+          readOnly: true
+        {{- end }}
       volumes:
       - name: rabbitmq-data-pvc
         persistentVolumeClaim:
@@ -143,6 +164,27 @@ spec:
         configMap:
           name: {{ .Release.Name }}-rabbitmq-config
           defaultMode: 0755
+      {{- if and .Values.rabbitmq.tls.enabled .Values.certmanager.enabled }}
+      - name: rabbitmq-tls
+        secret:
+          secretName: rabbitmq-tls
+          defaultMode: 0400
+      {{- end }}
+
+{{- if and .Values.rabbitmq.tls.enabled .Values.certmanager.enabled }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: rabbitmq-cert
+spec:
+  secretName: rabbitmq-tls
+  dnsNames:
+  - {{ tpl .Values.global.dnsRecord . | quote }}
+  issuerRef:
+    name: letsencrypt
+    kind: ClusterIssuer
+{{- end }}
 
 ---
 apiVersion: v1
@@ -152,7 +194,11 @@ metadata:
   labels:
     service: {{ .Release.Name }}-rabbitmq-service
 spec:
+{{- if and .Values.rabbitmq.enableInbound .Values.rabbitmq.tls.enabled .Values.certmanager.enabled }}
+  type: NodePort
+{{- else }}
   clusterIP: None
+{{- end }}
   ports:
   - port: 15672
     targetPort: 15672
@@ -160,5 +206,14 @@ spec:
   - port: 5672
     targetPort: 5672
     name: amqp
+  {{- if and .Values.rabbitmq.tls.enabled .Values.certmanager.enabled }}
+  - port: 5671
+{{- if .Values.rabbitmq.enableInbound }}
+    nodePort: 30671
+  {{- else }}
+    targetPort: 5671
+  {{- end }}
+    name: amqp-tls
+  {{- end }}
   selector:
     app: {{ .Release.Name }}-rabbitmq
