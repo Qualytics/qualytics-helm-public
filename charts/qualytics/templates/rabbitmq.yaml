@@ -4,11 +4,7 @@ metadata:
   name: {{ .Release.Name }}-rabbitmq-config
 data:
   enabled_plugins: |-
-{{ if and .Values.certmanager.enabled .Values.rabbitmq.tls.enabled }}
-    [rabbitmq_management,rabbitmq_auth_mechanism_ssl].
-{{ else }}
     [rabbitmq_management].
-{{ end }}
   rabbitmq.conf: |-
     default_user = user
     loopback_users.user = false
@@ -18,7 +14,7 @@ data:
     listeners.ssl.default = 5671
     ssl_options.certfile   = /etc/rabbitmq/tls/tls.crt
     ssl_options.keyfile    = /etc/rabbitmq/tls/tls.key
-    ssl_options.verify     = verify_peer
+    ssl_options.verify     = verify_none
     ssl_options.fail_if_no_peer_cert = false
 {{ end }}
     consumer_timeout = 3600000 # 60 minutes in milliseconds
