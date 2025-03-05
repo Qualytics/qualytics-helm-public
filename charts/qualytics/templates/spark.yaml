@@ -83,6 +83,12 @@ spec:
     env:
       - name: MOTHERSHIP_RABBIT_HOST
         value: "{{ .Release.Name }}-rabbitmq"
+      {{- if eq .Values.rabbitmq.tls.enabled false }}
+      - name: MOTHERSHIP_RABBIT_PORT
+        value: 5672
+      - name: MOTHERSHIP_RABBIT_USE_TLS
+        value: false
+      {{- end }}
       - name: MOTHERSHIP_RABBIT_USER
         value: "user"
       - name: MOTHERSHIP_RABBIT_PASS

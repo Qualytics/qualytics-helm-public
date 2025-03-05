@@ -248,7 +248,7 @@ postgres:
   enabled: true
   pvc:
     storageSize: "100Gi"
-    backupVolumeStorageSize: "50Gi"
+    backupStorageSize: "50Gi"
   # image:
   #   imageUrl: "postgres"
   #   imageTag: "17"
@@ -259,6 +259,8 @@ postgres:
   resources:
     memory: "10Gi"
     cpu: "2000m"
+  tls:
+    enabled: false  # Requires certmanager.enabled to be true
 
 #--------------------------------------------------------------------------------
 # RabbitMQ
@@ -272,6 +274,9 @@ rabbitmq:
   resources:
     memory: "1Gi"
     cpu: "500m"
+  tls:
+    enabled: false  # Requires certmanager.enabled to be true
+  enableInbound: false  # When true, opens AMQP-TLS on port 30671 into the cluster
 
 #--------------------------------------------------------------------------------
 # Busybox
