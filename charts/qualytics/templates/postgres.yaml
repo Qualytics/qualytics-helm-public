@@ -4,6 +4,11 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-data-claim
+  {{- if ( eq .Values.global.platform "aws" ) }}
+  annotations:
+    "ebs.csi.aws.com/iops": "8000"
+    "ebs.csi.aws.com/throughput": "250"
+  {{- end }}
 spec:
   accessModes:
     - ReadWriteOnce
@@ -38,6 +43,21 @@ spec:
       name: postgres
       targetPort: 5432
 
+{{- if and .Values.certmanager.enabled .Values.postgres.tls.enabled }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: postgres-cert
+spec:
+  secretName: postgres-tls
+  dnsNames:
+  - {{ tpl .Values.global.dnsRecord . | quote }}
+  issuerRef:
+    name: letsencrypt
+    kind: ClusterIssuer
+{{- end }}
+
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -56,9 +76,11 @@ spec:
       labels:
         app: {{ .Release.Name }}-postgres
     spec:
+      securityContext:
+        fsGroup: 999
+      terminationGracePeriodSeconds: 10
       imagePullSecrets:
         - name: regcred
-      terminationGracePeriodSeconds: 10
       {{- if .Values.appNodeSelector }}
       nodeSelector:
         {{- toYaml .Values.appNodeSelector | nindent 8 }}
@@ -71,19 +93,41 @@ spec:
       - name: postgres
         args:
           - -c
-          - max_connections=1000  # Adjust based on expected workload
+          - max_connections=500  # Adjust based on expected workload
           - -c
-          - shared_buffers=4GB  # Set to 25% of total memory, adjust as needed
+          - shared_buffers={{ div (mul (int (trimSuffix "Gi" .Values.postgres.resources.memory)) 1024) 100 | mul 40 }}MB  # 40% of total memory
           - -c
-          - maintenance_work_mem=1GB  # Adjust based on your maintenance needs
+          - effective_cache_size={{ div (mul (int (trimSuffix "Gi" .Values.postgres.resources.memory)) 1024) 100 | mul 75 }}MB  # 75% of total memory
           - -c
-          - work_mem=512MB  # Adjust so that max_connections * work_mem is well below total memory
+          - work_mem={{ div (mul (int (trimSuffix "Gi" .Values.postgres.resources.memory)) 1024) 100 | mul 5 }}MB  # 5% of total memory
           - -c
-          - effective_cache_size=8GB  # Adjust to about 75% of total memory
-          - '-c'
+          - maintenance_work_mem={{ div (mul (int (trimSuffix "Gi" .Values.postgres.resources.memory)) 1024) 100 | mul 10 }}MB  # 10% of total memory
+          - -c
+          - effective_io_concurrency=200  # Default is 1, must be increased for SSDs
+          - -c
+          - random_page_cost=1.1  # Default is 4.0 (tuned for SSDs)
+          - -c
+          - wal_writer_delay=50ms  # Default is 200ms
+          - -c
+          - checkpoint_timeout=10min  # Default is 5min
+          - -c
+          - autovacuum_vacuum_cost_limit=2000  # Default is 200
+          - -c
+          - autovacuum_vacuum_cost_delay=5ms  # Default is 20ms
+          - -c
+          - default_statistics_target=100  # Default is 1000 (lower for faster planning)
+          - -c
           - jit=off
           - -c
           - log_destination=stderr
+          {{- if and .Values.certmanager.enabled .Values.postgres.tls.enabled }}
+          - -c
+          - ssl=on
+          - -c
+          - ssl_cert_file=/etc/postgres/tls/tls.crt
+          - -c
+          - ssl_key_file=/etc/postgres/tls/tls.key
+          {{- end }}
         image: "{{ tpl .Values.postgres.image.imageUrl . }}:{{ .Values.postgres.image.imageTag }}"
         imagePullPolicy: IfNotPresent
         ports:
@@ -91,11 +135,11 @@ spec:
           name: postgres
         env:
           - name: POSTGRES_USER
-            value: "{{ .Values.secrets.postgres.username }}"
+            value: {{ .Values.postgres.username | quote }}
           - name: POSTGRES_PASSWORD
-            value: "{{ .Values.secrets.postgres.password }}"
+            value: {{ .Values.postgres.password | quote }}
           - name: POSTGRES_DB
-            value: "{{ .Values.secrets.postgres.database }}"
+            value: {{ .Values.postgres.database | quote }}
           - name: PGDATA
             value: /mnt/data/pgdata
         resources:
@@ -109,6 +153,11 @@ spec:
           mountPath: /mnt/data
         - name: pgshm
           mountPath: /dev/shm
+        {{- if and .Values.certmanager.enabled .Values.postgres.tls.enabled }}
+        - name: postgres-tls
+          mountPath: /etc/postgres/tls
+          readOnly: true
+        {{- end }}
       volumes:
         - name: postgres-data-pvc
           persistentVolumeClaim:
@@ -117,6 +166,12 @@ spec:
           emptyDir:
             medium: Memory
             sizeLimit: "4Gi"
+        {{- if and .Values.certmanager.enabled .Values.postgres.tls.enabled }}
+        - name: postgres-tls
+          secret:
+            secretName: postgres-tls
+            defaultMode: 384
+        {{- end }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -137,7 +192,7 @@ spec:
   {{- end }}
   resources:
     requests:
-      storage: {{ .Values.postgres.pvc.backupVolumeStorageSize }}
+      storage: {{ .Values.postgres.pvc.backupStorageSize }}
 
 ---
 apiVersion: batch/v1
@@ -250,7 +305,7 @@ spec:
                 printf "Running REINDEX on tables CONCURRENTLY\n"
                 TABLES=$(psql $DATABASE_URL -t -c "
                   SELECT '\"' || schemaname || '\".\"' || tablename || '\"'
-                  FROM pg_tables 
+                  FROM pg_tables
                   WHERE schemaname = 'public';")
                 for table in $TABLES; do
                   printf "Reindexing table: $table\n"
@@ -260,4 +315,5 @@ spec:
 
               printf "Database maintenance completed\n"
           restartPolicy: OnFailure
+
 {{- end }}

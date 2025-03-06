@@ -124,13 +124,13 @@ tolerations:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20250226-d383031"
+    firewallImageTag: "20250305-d9d912e"
 hubImage:
   image:
-    hubImageTag: "20250226-2fcba9b"
+    hubImageTag: "20250305-10137d1"
 frontendImage:
   image:
-    frontendImageTag: "20250226-4e7727e"
+    frontendImageTag: "20250305-88bbd09"
 
 #--------------------------------------------------------------------------------
 # Secrets
@@ -248,7 +248,7 @@ postgres:
   enabled: true
   pvc:
     storageSize: "100Gi"
-    backupVolumeStorageSize: "50Gi"
+    backupStorageSize: "50Gi"
   # image:
   #   imageUrl: "postgres"
   #   imageTag: "17"
@@ -259,6 +259,8 @@ postgres:
   resources:
     memory: "10Gi"
     cpu: "2000m"
+  tls:
+    enabled: false  # Requires certmanager.enabled to be true
 
 #--------------------------------------------------------------------------------
 # RabbitMQ
@@ -272,6 +274,9 @@ rabbitmq:
   resources:
     memory: "1Gi"
     cpu: "500m"
+  tls:
+    enabled: false  # Requires certmanager.enabled to be true
+  enableInbound: false  # When true, opens AMQP-TLS on port 30671 into the cluster
 
 #--------------------------------------------------------------------------------
 # Busybox
