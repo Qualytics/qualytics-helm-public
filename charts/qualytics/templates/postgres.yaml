@@ -103,13 +103,19 @@ spec:
           - -c
           - maintenance_work_mem={{ div (mul (int (trimSuffix "Gi" .Values.postgres.resources.memory)) 1024) 100 | mul 10 }}MB  # 10% of total memory
           - -c
-          - effective_io_concurrency=200  # Default is 1, must be increased for SSDs
+          - effective_io_concurrency=300  # Default is 1, must be increased for SSDs
           - -c
-          - random_page_cost=1.1  # Default is 4.0 (tuned for SSDs)
+          - random_page_cost=1.0  # Default is 4.0 (tuned for SSDs)
           - -c
-          - wal_writer_delay=50ms  # Default is 200ms
+          - wal_writer_delay=20ms  # Default is 200ms
           - -c
-          - checkpoint_timeout=10min  # Default is 5min
+          - wal_buffers=64MB  # Increases WAL buffering
+          - -c
+          - max_wal_size=4GB  # Reduces frequent WAL writes
+          - -c
+          - min_wal_size=1GB  # Keeps more WAL logs in memory
+          - -c
+          - checkpoint_timeout=15min  # Default is 5min
           - -c
           - autovacuum_vacuum_cost_limit=2000  # Default is 200
           - -c
