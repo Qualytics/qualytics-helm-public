@@ -124,13 +124,13 @@ tolerations:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20250305-d9d912e"
+    firewallImageTag: "20250318-c8e5209"
 hubImage:
   image:
-    hubImageTag: "20250305-10137d1"
+    hubImageTag: "20250317-eff7aa3"
 frontendImage:
   image:
-    frontendImageTag: "20250305-88bbd09"
+    frontendImageTag: "20250317-2f3c540"
 
 #--------------------------------------------------------------------------------
 # Secrets
@@ -177,7 +177,7 @@ secrets:
 # Firewall configuration
 #--------------------------------------------------------------------------------
 firewall:
-  sparkVersion: "3.5.4"
+  sparkVersion: "3.5.5"
   eventLog: false
   numVolumes: -1
   parallelismScaleFactor: -1
@@ -249,13 +249,13 @@ postgres:
   pvc:
     storageSize: "100Gi"
     backupStorageSize: "50Gi"
-  # image:
-  #   imageUrl: "postgres"
-  #   imageTag: "17"
-  # Use this image for auto upgrade
   image:
-    imageUrl: "pgautoupgrade/pgautoupgrade"
-    imageTag: "17-bookworm"
+    imageUrl: "postgres"
+    imageTag: "17"
+  # Use this image for auto upgrade
+  # image:
+  #   imageUrl: "pgautoupgrade/pgautoupgrade"
+  #   imageTag: "17-bookworm"
   resources:
     memory: "10Gi"
     cpu: "2000m"
