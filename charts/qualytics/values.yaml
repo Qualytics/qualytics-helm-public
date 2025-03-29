@@ -124,13 +124,13 @@ tolerations:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20250323-9577991"
+    firewallImageTag: "20250328-7954be3"
 hubImage:
   image:
-    hubImageTag: "20250323-0a19a69"
+    hubImageTag: "20250328-38e43b0"
 frontendImage:
   image:
-    frontendImageTag: "20250323-7032754"
+    frontendImageTag: "20250328-b64beaf"
 
 #--------------------------------------------------------------------------------
 # Secrets
