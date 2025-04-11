@@ -17,3 +17,21 @@ Generate postgres connection URL
 {{- end -}}
 {{- printf "%s:%s@%s:%s/%s?sslmode=%s" .Values.secrets.postgres.username .Values.secrets.postgres.password $host $port .Values.secrets.postgres.database $sslMode -}}
 {{- end -}}
+
+{{/*
+Determine deployment size based on firewall.numCoresPerExecutor
+*/}}
+{{- define "qualytics.global.size" -}}
+  {{- $cores := .Values.firewall.numCoresPerExecutor | int -}}
+  {{- if and (ge $cores 1) (le $cores 4) -}}
+    small
+  {{- else if and (gt $cores 4) (le $cores 8) -}}
+    medium
+  {{- else if and (gt $cores 8) (le $cores 16) -}}
+    large
+  {{- else if and (gt $cores 16) (le $cores 32) -}}
+    xlarge
+  {{- else -}}
+    unspecified
+  {{- end -}}
+{{- end }}

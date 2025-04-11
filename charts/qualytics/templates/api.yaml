@@ -41,6 +41,10 @@ spec:
         env:
           - name: APP_AUTO_RELOAD
             value: "False"
+          - name: APP_CLOUD_PLATFORM
+            value: {{ .Values.global.platform | quote }}
+          - name: APP_DEPLOYMENT_SIZE
+            value: {{ include "qualytics.global.size" . | quote }}
           - name: CORS_ORIGINS
             value: {{ tpl .Values.global.dnsRecord . | quote }}
           - name: POSTGRES_CONNECTION_URL
