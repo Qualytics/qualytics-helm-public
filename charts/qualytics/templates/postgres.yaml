@@ -204,7 +204,7 @@ spec:
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: postgres-snapshotter
+  name: {{ .Release.Name }}-postgres-snapshotter
   labels:
     role: backups
 spec:
@@ -262,7 +262,7 @@ spec:
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: postgres-maintenance
+  name: {{ .Release.Name }}-postgres-maintenance
   annotations:
     argocd.argoproj.io/compare-options: IgnoreExtraneous
   labels:

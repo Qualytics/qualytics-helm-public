@@ -2,16 +2,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: psql-deployment
+  name: {{ .Release.Name }}-psql
   labels:
-    app: psql-deployment
+    app: {{ .Release.Name }}-psql
 spec:
   replicas: 0
   template:
     metadata:
-      name: psql-deployment
+      name: {{ .Release.Name }}-psql
       labels:
-        app: psql-deployment
+        app: {{ .Release.Name }}-psql
     spec:
       imagePullSecrets:
         - name: regcred
@@ -24,7 +24,7 @@ spec:
         {{- toYaml .Values.tolerations.appNodeTolerations | nindent 8 }}
       {{- end }}
       containers:
-        - name: psql-deployment
+        - name: {{ .Release.Name }}-psql
           image: "{{ tpl .Values.postgres.image.imageUrl . }}:{{ .Values.postgres.image.imageTag }}"
           imagePullPolicy: IfNotPresent
           command:
@@ -46,5 +46,5 @@ spec:
             claimName: postgres-snapshots-claim
   selector:
     matchLabels:
-      app: psql-deployment
+      app: {{ .Release.Name }}-psql
   {{- end }}
