@@ -127,7 +127,7 @@ firewallImage:
     firewallImageTag: "20250424-ede9de2"
 hubImage:
   image:
-    hubImageTag: "20250424-9f8807b"
+    hubImageTag: "20250425-79d7cc7"
 frontendImage:
   image:
     frontendImageTag: "20250424-909f483"
