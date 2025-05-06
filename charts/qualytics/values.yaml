@@ -124,13 +124,13 @@ tolerations:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20250424-ede9de2"
+    firewallImageTag: "20250505-bd6f63f"
 hubImage:
   image:
-    hubImageTag: "20250425-79d7cc7"
+    hubImageTag: "20250505-2d05f5c"
 frontendImage:
   image:
-    frontendImageTag: "20250424-909f483"
+    frontendImageTag: "20250505-4df83cc"
 
 #--------------------------------------------------------------------------------
 # Secrets
@@ -182,14 +182,10 @@ firewall:
   numVolumes: -1
   parallelismScaleFactor: -1
   maxParallelSyncRequests: 3
-  maxExecutors: 12
-  numCoresPerExecutor: 7
-  maxMemoryPerExecutor: 55000
   memoryOverheadFactor: 0.1
   libpostalDataPath: "/opt/libpostal"
   driver:
     cores: 7
-    coreLimit: "7000m"
     memory: "55000m"
   dynamicAllocation:
     enabled: true
@@ -201,7 +197,6 @@ firewall:
     # of .spec.dynamicAllocation.initialExecutors and .spec.executor.instances if both are set.
     instances: 1
     cores: 7
-    coreLimit: "7000m"
     memory: "55000m"
 
 #--------------------------------------------------------------------------------

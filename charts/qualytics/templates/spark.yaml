@@ -44,7 +44,6 @@ spec:
 {{- $resources := .Values.firewall -}}
     {{- with $resources.driver }}
     cores: {{ .cores }}
-    coreLimit: {{ .coreLimit }}
     memory: {{ .memory }}
     {{- end }}
     {{- if .Values.driverNodeSelector }}
@@ -103,11 +102,11 @@ spec:
       - name: MOTHERSHIP_MAX_PARALLEL_SYNC_REQUESTS
         value: {{ .Values.firewall.maxParallelSyncRequests | quote }}
       - name: MOTHERSHIP_MAX_EXECUTORS
-        value: {{ .Values.firewall.maxExecutors | int | quote }}
+        value: {{ .Values.firewall.dynamicAllocation.maxExecutors | int | quote }}
       - name: MOTHERSHIP_NUM_CORES_PER_EXECUTOR
-        value: {{ .Values.firewall.numCoresPerExecutor | int | quote  }}
+        value: {{ .Values.firewall.executor.cores | int | quote  }}
       - name: MOTHERSHIP_MAX_MEMORY_PER_EXECUTOR
-        value: {{ .Values.firewall.maxMemoryPerExecutor | int | quote  }}
+        value: {{ .Values.firewall.executor.memory | trimSuffix "m" | int | quote }}
       - name: MOTHERSHIP_LIBPOSTAL_DATA_PATH
         value: {{ .Values.firewall.libpostalDataPath | quote  }}
     labels:
@@ -124,7 +123,6 @@ spec:
     {{- with $resources.executor }}
     instances: {{ .instances }}
     cores: {{ .cores }}
-    coreLimit: {{ .coreLimit }}
     memory: {{ .memory }}
     {{- end }}
     javaOptions:
