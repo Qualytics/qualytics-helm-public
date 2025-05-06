@@ -124,10 +124,10 @@ tolerations:
 # App image tags
 firewallImage:
   image:
-    firewallImageTag: "20250505-bd6f63f"
+    firewallImageTag: "20250506-8a50de6"
 hubImage:
   image:
-    hubImageTag: "20250505-2d05f5c"
+    hubImageTag: "20250506-39a8187"
 frontendImage:
   image:
     frontendImageTag: "20250505-4df83cc"
