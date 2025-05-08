@@ -87,8 +87,8 @@ global:
   dnsRecord: "changeme.qualytics.io"
   authType: "AUTH0"
   imageUrls:
-    firewallImageUrl: "qualyticsai/firewall"
-    hubImageUrl: "qualyticsai/hub"
+    controlplaneImageUrl: "qualyticsai/controlplane"
+    dataplaneImageUrl: "qualyticsai/dataplane"
     frontendImageUrl: "qualyticsai/frontend"
 
 # Storage classes
@@ -121,16 +121,16 @@ tolerations:
   #       value: "true"
   #       effect: NoSchedule
 
-# App image tags
-firewallImage:
+# Platform image tags
+controlplaneImage:
   image:
-    firewallImageTag: "20250506-8a50de6"
-hubImage:
+    controlplaneImageTag: "20250506-8b25748"
+dataplaneImage:
   image:
-    hubImageTag: "20250506-39a8187"
+    dataplaneImageTag: "20250506-6a890cb"
 frontendImage:
   image:
-    frontendImageTag: "20250505-4df83cc"
+    frontendImageTag: "20250506-8a63dd1"
 
 #--------------------------------------------------------------------------------
 # Secrets
@@ -174,9 +174,9 @@ secrets:
 
 
 #--------------------------------------------------------------------------------
-# Firewall configuration
+# Dataplane configuration
 #--------------------------------------------------------------------------------
-firewall:
+dataplane:
   sparkVersion: "3.5.5"
   eventLog: false
   numVolumes: -1
@@ -200,9 +200,9 @@ firewall:
     memory: "55000m"
 
 #--------------------------------------------------------------------------------
-# Hub configuration
+# Controlplane configuration
 #--------------------------------------------------------------------------------
-hub:
+controlplane:
   replicas: 6
   ingress:
     path: "/api/?(.*)"
@@ -219,7 +219,7 @@ hub:
   egress:
     verifyTLSCertificates: true
 
-hubCmd:
+controlplaneCmd:
   resources:
     memory: "2Gi"
     cpu: "500m"

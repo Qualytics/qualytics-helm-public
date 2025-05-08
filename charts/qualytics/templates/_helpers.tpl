@@ -19,10 +19,10 @@ Generate postgres connection URL
 {{- end -}}
 
 {{/*
-Determine deployment size based on firewall.numCoresPerExecutor
+Determine deployment size based on dataplane.driver.cores
 */}}
 {{- define "qualytics.global.size" -}}
-  {{- $cores := .Values.firewall.numCoresPerExecutor | int -}}
+  {{- $cores := .Values.dataplane.driver.cores | int -}}
   {{- if and (ge $cores 1) (le $cores 4) -}}
     small
   {{- else if and (gt $cores 4) (le $cores 8) -}}

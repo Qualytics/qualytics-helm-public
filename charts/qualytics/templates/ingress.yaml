@@ -79,13 +79,13 @@ spec:
     - host: {{ tpl .Values.global.dnsRecord . | quote }}
       http:
         paths:
-          - path: {{ .Values.hub.ingress.path | quote }}
+          - path: {{ .Values.controlplane.ingress.path | quote }}
             pathType: ImplementationSpecific
             backend:
               service:
                 name: {{ .Release.Name }}-api-service
                 port:
-                  number: {{ .Values.hub.ingress.servicePort }}
+                  number: {{ .Values.controlplane.ingress.servicePort }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

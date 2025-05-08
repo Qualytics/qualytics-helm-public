@@ -26,14 +26,14 @@ spec:
       {{- end }}
       containers:
       - name: cmd
-        image: "{{ tpl .Values.global.imageUrls.hubImageUrl . }}:{{ .Values.hubImage.image.hubImageTag }}"
+        image: "{{ tpl .Values.global.imageUrls.controlplaneImageUrl . }}:{{ .Values.controlplaneImage.image.controlplaneImageTag }}"
         imagePullPolicy: IfNotPresent
         command: [ "/bin/bash","-c" ]
         args: [ "python /app/hub_cmd.py" ]
         resources:
           requests:
-            memory: {{ .Values.hubCmd.resources.memory | quote }}
-            cpu: {{ .Values.hubCmd.resources.cpu| quote }}
+            memory: {{ .Values.controlplaneCmd.resources.memory | quote }}
+            cpu: {{ .Values.controlplaneCmd.resources.cpu| quote }}
         env:
           {{- if ( eq .Values.global.authType "OIDC" ) }}
           - name: API_AUTH

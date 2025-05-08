@@ -23,11 +23,11 @@ javaOptions:
   "-Dmother.rabbit_mq_host={{ .Release.Name }}-rabbitmq
    -Dmother.rabbit_mq_user=user
    -Dmother.rabbit_mq_pass={{ .Values.secrets.rabbitmq.rabbitmq_password }}
-   -Dmother.use_cache={{ .Values.firewall.useCache }}
-   -Dmother.max_executors={{ .Values.firewall.maxExecutors }}
-   -Dmother.num_cores_per_executor={{ .Values.firewall.numCoresPerExecutor }}
-   -Dmother.max_memory_per_executor={{ .Values.firewall.maxMemoryPerExecutor }}
-   -Dmother.libpostal_data_path={{ .Values.firewall.libpostalDataPath }}   
+   -Dmother.use_cache={{ .Values.dataplane.useCache }}
+   -Dmother.max_executors={{ .Values.dataplane.maxExecutors }}
+   -Dmother.num_cores_per_executor={{ .Values.dataplane.numCoresPerExecutor }}
+   -Dmother.max_memory_per_executor={{ .Values.dataplane.maxMemoryPerExecutor }}
+   -Dmother.libpostal_data_path={{ .Values.dataplane.libpostalDataPath }}   
 ```
 
 ### 2. No Node Selectors, Tolerations, or Volumes
@@ -81,7 +81,7 @@ metadata:
 spec:
   type: Scala
   mode: cluster
-  image: "{{ tpl .Values.global.imageUrls.firewallImageUrl . }}:{{ .Values.firewallImage.image.firewallImageTag }}"
+  image: "{{ tpl .Values.global.imageUrls.dataplaneImageUrl . }}:{{ .Values.dataplaneImage.image.dataplaneImageTag }}"
   imagePullPolicy: IfNotPresent
   imagePullSecrets:
     - regcred
@@ -91,12 +91,12 @@ spec:
     onFailureRetryInterval: 5
     onSubmissionFailureRetries: 1000
     onSubmissionFailureRetryInterval: 5
-  mainClass: io.qualytics.firewall.SparkMothership
-  mainApplicationFile: "local:///opt/spark/jars/firewall-core.jar"
-  sparkVersion: {{ .Values.firewall.sparkVersion }}
+  mainClass: io.qualytics.dataplane.SparkMothership
+  mainApplicationFile: "local:///opt/spark/jars/qualytics-dataplane.jar"
+  sparkVersion: {{ .Values.dataplane.sparkVersion }}
   sparkConf:
-    spark.eventLog.enabled: {{ .Values.firewall.eventLog | quote }}
-    spark.kubernetes.memoryOverheadFactor: {{ .Values.firewall.memoryOverheadFactor | quote }}
+    spark.eventLog.enabled: {{ .Values.dataplane.eventLog | quote }}
+    spark.kubernetes.memoryOverheadFactor: {{ .Values.dataplane.memoryOverheadFactor | quote }}
     spark.kubernetes.submission.connectionTimeout: "480000"
     spark.kubernetes.submission.requestTimeout: "480000"
     spark.kubernetes.driver.connectionTimeout: "480000"
@@ -108,7 +108,7 @@ spec:
     spark.kubernetes.authenticate.submission.oauthToken: "/var/run/secrets/kubernetes.io/serviceaccount/token"
     spark.kubernetes.authenticate.submission.serviceAccountName: {{ .Values.sparkoperator.spark.serviceAccount.name }}
   driver:
-{{- $resources := .Values.firewall -}}
+{{- $resources := .Values.dataplane -}}
     {{- with $resources.driver }}
     cores: {{ .cores }}
     coreLimit: {{ .coreLimit }}
@@ -124,14 +124,14 @@ spec:
        -Dmother.rabbit_mq_host={{ .Release.Name }}-rabbitmq
        -Dmother.rabbit_mq_user=user
        -Dmother.rabbit_mq_pass={{ .Values.secrets.rabbitmq.rabbitmq_password }}
-       -Dmother.use_cache={{ .Values.firewall.useCache }}
-       -Dmother.max_executors={{ .Values.firewall.maxExecutors }}
-       -Dmother.num_cores_per_executor={{ .Values.firewall.numCoresPerExecutor }}
-       -Dmother.max_memory_per_executor={{ .Values.firewall.maxMemoryPerExecutor }}
-       -Dmother.libpostal_data_path={{ .Values.firewall.libpostalDataPath }}                     
+       -Dmother.use_cache={{ .Values.dataplane.useCache }}
+       -Dmother.max_executors={{ .Values.dataplane.maxExecutors }}
+       -Dmother.num_cores_per_executor={{ .Values.dataplane.numCoresPerExecutor }}
+       -Dmother.max_memory_per_executor={{ .Values.dataplane.maxMemoryPerExecutor }}
+       -Dmother.libpostal_data_path={{ .Values.dataplane.libpostalDataPath }}                     
        -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
     labels:
-      version: {{ .Values.firewall.sparkVersion }}
+      version: {{ .Values.dataplane.sparkVersion }}
     serviceAccount: {{ .Values.sparkoperator.spark.serviceAccount.name }}
   dynamicAllocation:
     {{- with $resources.dynamicAllocation }}
@@ -154,7 +154,7 @@ spec:
        -Duser.timezone=UTC
        -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
     labels:
-      version: {{ .Values.firewall.sparkVersion }}
+      version: {{ .Values.dataplane.sparkVersion }}
 ```
 
 ## Conclusion
