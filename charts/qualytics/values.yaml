@@ -91,6 +91,17 @@ global:
     dataplaneImageUrl: "qualyticsai/dataplane"
     frontendImageUrl: "qualyticsai/frontend"
 
+# Platform image tags
+controlplaneImage:
+  image:
+    controlplaneImageTag: "20250510-8d82b35"
+dataplaneImage:
+  image:
+    dataplaneImageTag: "20250509-c7ac972"
+frontendImage:
+  image:
+    frontendImageTag: "20250509-a9a7877"
+
 # Storage classes
 storageClass:
   create: false
@@ -120,17 +131,6 @@ tolerations:
   #       operator: Equal
   #       value: "true"
   #       effect: NoSchedule
-
-# Platform image tags
-controlplaneImage:
-  image:
-    controlplaneImageTag: "20250506-8b25748"
-dataplaneImage:
-  image:
-    dataplaneImageTag: "20250506-6a890cb"
-frontendImage:
-  image:
-    frontendImageTag: "20250506-8a63dd1"
 
 #--------------------------------------------------------------------------------
 # Secrets
