@@ -57,7 +57,7 @@ spec:
     javaOptions:
       "-Divy.cache.dir=/tmp
        -Divy.home=/tmp
-       -Dlog4j.configuration=file:/opt/spark/log4j.properties
+       -Dlog4j.configurationFile=file:/opt/spark/log4j2.properties
        -Dconfig.resource=prod.conf
        -Djava.library.path=/opt/spark/libs/
        -Duser.timezone=UTC
@@ -95,7 +95,7 @@ spec:
           secretKeyRef:
             name: qualytics-creds
             key: rabbitmq_password
-    {{- if gt ( .Values.dataplane.parallelismScaleFactor | int ) 0 }}
+    {{- if gt ( .Values.dataplane.parallelismScaleFactor | float64 ) 0.0 }}
       - name: MOTHERSHIP_PARALLELISM_SCALE_FACTOR
         value: {{ .Values.dataplane.parallelismScaleFactor | quote }}
     {{- end }}
@@ -126,7 +126,7 @@ spec:
     memory: {{ .memory }}
     {{- end }}
     javaOptions:
-      "-Dlog4j.configuration=file:/opt/spark/log4j.properties 
+      "-Dlog4j.configurationFile=file:/opt/spark/log4j2.properties
        -Djava.library.path=/opt/spark/libs/
        -Duser.timezone=UTC
        -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
