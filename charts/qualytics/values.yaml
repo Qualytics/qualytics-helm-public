@@ -97,7 +97,7 @@ controlplaneImage:
     controlplaneImageTag: "20250523-57f8d23"
 dataplaneImage:
   image:
-    dataplaneImageTag: "20250529-992d36b"
+    dataplaneImageTag: "20250529-062ef9b"
 frontendImage:
   image:
     frontendImageTag: "20250523-0d164b1"
