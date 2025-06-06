@@ -94,13 +94,13 @@ global:
 # Platform image tags
 controlplaneImage:
   image:
-    controlplaneImageTag: "20250523-57f8d23"
+    controlplaneImageTag: "20250606-81e3c1c"
 dataplaneImage:
   image:
-    dataplaneImageTag: "20250529-062ef9b"
+    dataplaneImageTag: "20250606-db433e8"
 frontendImage:
   image:
-    frontendImageTag: "20250523-0d164b1"
+    frontendImageTag: "20250606-0c88e63"
 
 # Storage classes
 storageClass:
@@ -177,13 +177,17 @@ secrets:
 # Dataplane configuration
 #--------------------------------------------------------------------------------
 dataplane:
-  sparkVersion: "3.5.5"
+  sparkVersion: "3.5.6"
   eventLog: false
   numVolumes: -1
   parallelismScaleFactor: -1
   maxParallelSyncRequests: 3
   memoryOverheadFactor: 0.1
   libpostalDataPath: "/opt/libpostal"
+  extraPackages:
+    - "com.oracle.database.jdbc:ojdbc11:21.18.0.0"
+    - "com.teradata.jdbc:terajdbc:20.00.00.46"
+    - "com.ibm.db2:jcc:12.1.0.0"
   driver:
     cores: 7
     memory: "55000m"
