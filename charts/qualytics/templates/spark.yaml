@@ -15,9 +15,16 @@ spec:
     onFailureRetryInterval: 10
     onSubmissionFailureRetries: 1000
     onSubmissionFailureRetryInterval: 10
+  sparkVersion: {{ .Values.dataplane.sparkVersion }}
   mainClass: io.qualytics.dataplane.SparkMothership
   mainApplicationFile: "local:///opt/spark/jars/qualytics-dataplane.jar"
-  sparkVersion: {{ .Values.dataplane.sparkVersion }}
+  {{- if .Values.dataplane.extraPackages }}
+  deps:
+    packages:
+    {{- range .Values.dataplane.extraPackages }}
+      - {{ . | quote }}
+    {{- end }}
+  {{- end }}
   sparkConf:
     spark.eventLog.enabled: {{ .Values.dataplane.eventLog | quote }}
     spark.kubernetes.memoryOverheadFactor: {{ .Values.dataplane.memoryOverheadFactor | quote }}
@@ -25,6 +32,7 @@ spec:
     spark.kubernetes.submission.requestTimeout: "480000"
     spark.kubernetes.driver.connectionTimeout: "480000"
     spark.kubernetes.driver.requestTimeout: "480000"
+    spark.jars.ivy: "/tmp"
   {{- if gt ( .Values.dataplane.numVolumes | int ) 0 }}
   volumes:
     {{- range $i := until (int .Values.dataplane.numVolumes) }}
