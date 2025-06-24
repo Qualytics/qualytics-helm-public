@@ -36,7 +36,7 @@ Nodes with the `driverNodes=true` and `executorNodes=true` labels will be used f
 
 #### Docker Registry Secrets
 
-Execute the command below using the credentials supplied by your account manager as a replacement for "<token>". The secret created will provide access to Qualytics private registry and the required images that are available there.
+Execute the command below using the credentials supplied by your account manager as a replacement for "&lt;token&gt;". The secret created will provide access to Qualytics private registry and the required images that are available there.
 
 ```bash
 kubectl create namespace qualytics
