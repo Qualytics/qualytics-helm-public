@@ -36,7 +36,7 @@ Nodes with the `driverNodes=true` and `executorNodes=true` labels will be used f
 
 #### Docker Registry Secrets
 
-Execute the command below using the credentials supplied by your account manager as replacements for "your-name" and "your-pword". The secret created will provide access to Qualytics private registry and the required images that are available there.
+Execute the command below using the credentials supplied by your account manager as a replacement for "&lt;token&gt;". The secret created will provide access to Qualytics private registry on dockerhub and the required images that are available there.
 
 ```bash
 kubectl create namespace qualytics
@@ -44,7 +44,7 @@ kubectl create secret docker-registry regcred -n qualytics --docker-username=qua
 ```
 
 > [!IMPORTANT]
-> If you are unable to directly connect your cluster to our image repository for technical or compliance reasons, then you can instead import our images into your preferred registry using these same credentials. You'll need to update the image URLs in the values.yaml file in the next step to point to your repository instead of ours.
+> The above configuration will connect your cluster directly to our private dockerhub repositories for pulling our images. If you are unable to directly connect your cluster to our image repository for technical or compliance reasons, then you can instead import our images into your preferred registry using these same credentials (`docker login -u qualyticsai -p <token>`). You'll need to update the image URLs in the values.yaml file in the next step to point to your repository instead of ours.
 
 
 ### 2. Update values.yaml with appropriate values
