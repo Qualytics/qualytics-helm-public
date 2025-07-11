@@ -1,0 +1,127 @@
+######------------------------------------------------------------
+# Qualytics Configuration
+# This is a simplified version of values.yaml with essential settings
+######------------------------------------------------------------
+
+#--------------------------------------------------------------------------------
+# Global Configuration (REQUIRED)
+#--------------------------------------------------------------------------------
+global:
+  # Cloud platform: aws, gcp, azure
+  platform: "aws"
+  # Your DNS record (will be provided by Qualytics)
+  dnsRecord: "changeme.qualytics.io"
+  # Authentication type: AUTH0 (recommended) or OIDC
+  authType: "AUTH0"
+
+#--------------------------------------------------------------------------------
+# Authentication Secrets (REQUIRED)
+#--------------------------------------------------------------------------------
+secrets:
+  # Auth0 configuration (provided by Qualytics account manager)
+  auth0:
+    auth0_domain: auth.qualytics.io
+    auth0_audience: changeme-api
+    auth0_organization: org_changeme
+    auth0_spa_client_id: spa_client_id
+  
+  # System secrets (CHANGE THESE!)
+  auth:
+    jwt_signing_secret: ChangeMe!
+  postgres:
+    password: postgres
+    secrets_passphrase: ChangeMe!
+  rabbitmq:
+    rabbitmq_password: ChangeMe!
+
+#--------------------------------------------------------------------------------
+# Node Scheduling (OPTIONAL - remove if not using node selectors)
+#--------------------------------------------------------------------------------
+# Uncomment and configure if using dedicated node groups
+# appNodeSelector:
+#   appNodes: "true"
+# driverNodeSelector:
+#   driverNodes: "true"
+# executorNodeSelector:
+#   executorNodes: "true"
+
+#--------------------------------------------------------------------------------
+# Dependencies
+#--------------------------------------------------------------------------------
+sparkoperator:
+  enabled: true
+  controller:
+    nodeSelector: {}
+    #   appNodes: "true"
+  webhook:
+    enable: true
+    nodeSelector: {}
+    #   appNodes: "true"
+  spark:
+    jobNamespaces:
+    - "qualytics"
+    serviceAccount:
+      name: "qualytics-spark"
+
+nginx:
+  enabled: false
+  controller:
+    nodeSelector: {}
+    #   appNodes: "true"
+
+certmanager:
+  enabled: false
+  nodeSelector: {}
+  #   appNodes: "true"
+
+#--------------------------------------------------------------------------------
+# Ingress Configuration
+#--------------------------------------------------------------------------------
+ingress:
+  enabled: true
+  cors: false
+
+#--------------------------------------------------------------------------------
+# Controlplane Configuration
+#--------------------------------------------------------------------------------
+controlplane:
+  smtp:
+    enabled: false
+    server: "email-smtp.us-east-1.amazonaws.com"
+    sender: "no-reply@qualytics.co"
+    port: "465"
+  egress:
+    verifyTLSCertificates: true
+
+#--------------------------------------------------------------------------------
+# Dataplane configuration
+#--------------------------------------------------------------------------------
+dataplane:
+  numVolumes: -1
+  parallelismScaleFactor: -1
+  maxParallelSyncRequests: 3
+  driver:
+    cores: 7
+    memory: "55000m"
+  dynamicAllocation:
+    enabled: true
+    initialExecutors: 1
+    minExecutors: 1
+    maxExecutors: 12
+  executor:
+    instances: 1
+    cores: 7
+    memory: "55000m"
+
+#--------------------------------------------------------------------------------
+# Storage Configuration
+#--------------------------------------------------------------------------------
+postgres:
+  enabled: true
+  pvc:
+    storageSize: "50Gi"
+    backupStorageSize: "25Gi"
+
+rabbitmq:
+  pvc:
+    storageSize: "5Gi"
