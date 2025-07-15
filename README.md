@@ -97,7 +97,7 @@ The `template.values.yaml` file contains essential configurations with sensible 
 - Enable `nginx` if you need an ingress controller
 - Enable `certmanager` for automatic SSL certificates
 - Configure `controlplane.smtp` settings for email notifications
-- Uncomment node selectors if using dedicated node groups
+- Node selectors are now enabled by default for dedicated node groups
 
 For advanced configuration, refer to the full `charts/qualytics/values.yaml` file which contains all available options.
 

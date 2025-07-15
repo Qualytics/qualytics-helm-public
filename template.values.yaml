@@ -38,12 +38,12 @@ secrets:
 # Node Scheduling (OPTIONAL - remove if not using node selectors)
 #--------------------------------------------------------------------------------
 # Uncomment and configure if using dedicated node groups
-# appNodeSelector:
-#   appNodes: "true"
-# driverNodeSelector:
-#   driverNodes: "true"
-# executorNodeSelector:
-#   executorNodes: "true"
+appNodeSelector:
+  appNodes: "true"
+driverNodeSelector:
+  driverNodes: "true"
+executorNodeSelector:
+  executorNodes: "true"
 
 #--------------------------------------------------------------------------------
 # Dependencies
@@ -51,12 +51,12 @@ secrets:
 sparkoperator:
   enabled: true
   controller:
-    nodeSelector: {}
-    #   appNodes: "true"
+    nodeSelector:
+      appNodes: "true"
   webhook:
     enable: true
-    nodeSelector: {}
-    #   appNodes: "true"
+    nodeSelector:
+      appNodes: "true"
   spark:
     jobNamespaces:
     - "qualytics"
@@ -66,13 +66,13 @@ sparkoperator:
 nginx:
   enabled: false
   controller:
-    nodeSelector: {}
-    #   appNodes: "true"
+    nodeSelector:
+      appNodes: "true"
 
 certmanager:
   enabled: false
-  nodeSelector: {}
-  #   appNodes: "true"
+  nodeSelector:
+    appNodes: "true"
 
 #--------------------------------------------------------------------------------
 # Ingress Configuration
