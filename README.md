@@ -124,9 +124,6 @@ helm upgrade --install qualytics qualytics/qualytics \
 ```bash
 # Check deployment status
 kubectl get pods -n qualytics
-
-# View logs if needed
-kubectl logs -n qualytics -l app=controlplane
 ```
 
 **Get the ingress IP address:**
