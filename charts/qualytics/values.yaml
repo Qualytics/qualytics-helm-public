@@ -62,6 +62,9 @@ certmanager:
   enabled: false
   registeredEmail: "devops@qualytics.co"
   installCRDs: "true"
+  config:
+    featureGates:
+      ACMEHTTP01IngressPathTypeExact: false
   nodeSelector: {}
   #   appNodes: "true"
   # tolerations:
@@ -94,13 +97,13 @@ global:
 # Platform image tags
 controlplaneImage:
   image:
-    controlplaneImageTag: "20250718-b947fff"
+    controlplaneImageTag: "20250723-5168acd"
 dataplaneImage:
   image:
-    dataplaneImageTag: "20250718-ed33960"
+    dataplaneImageTag: "20250724-8f471bb"
 frontendImage:
   image:
-    frontendImageTag: "20250718-8ee07eb"
+    frontendImageTag: "20250723-6e58b02"
 
 # Storage classes
 storageClass:
