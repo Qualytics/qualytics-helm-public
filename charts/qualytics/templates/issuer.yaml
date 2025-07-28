@@ -9,7 +9,7 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: {{ .Values.certmanager.registeredEmail }}
+    email: "devops@qualytics.co"
     privateKeySecretRef:
       name: letsencrypt
     solvers:

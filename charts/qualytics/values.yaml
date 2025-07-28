@@ -60,8 +60,7 @@ nginx:
 
 certmanager:
   enabled: false
-  registeredEmail: "devops@qualytics.co"
-  installCRDs: "true"
+  installCRDs: true
   config:
     featureGates:
       ACMEHTTP01IngressPathTypeExact: false
