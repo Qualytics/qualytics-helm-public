@@ -171,11 +171,11 @@ spec:
           name: postgres
         env:
           - name: POSTGRES_USER
-            value: {{ .Values.postgres.username | quote }}
+            value: {{ .Values.secrets.postgres.username | quote }}
           - name: POSTGRES_PASSWORD
-            value: {{ .Values.postgres.password | quote }}
+            value: {{ .Values.secrets.postgres.password | quote }}
           - name: POSTGRES_DB
-            value: {{ .Values.postgres.database | quote }}
+            value: {{ .Values.secrets.postgres.database | quote }}
           - name: PGDATA
             value: /mnt/data/pgdata
         resources:
