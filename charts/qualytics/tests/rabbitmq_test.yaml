@@ -1,0 +1,16 @@
+suite: test rabbitmq configuration
+templates:
+  - rabbitmq.yaml
+tests:
+  # Basic RabbitMQ functionality
+  - it: should create rabbitmq resources
+    asserts:
+      - hasDocuments:
+          count: 5
+
+  # Basic document checks  
+  - it: should create rabbitmq StatefulSet
+    asserts:
+      - isKind:
+          of: StatefulSet
+        documentIndex: 3

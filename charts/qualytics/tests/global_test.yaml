@@ -1,0 +1,159 @@
+suite: test global values configuration
+templates:
+  - spark.yaml
+  - ingress.yaml
+tests:
+  # Platform configuration tests in SparkApplication
+  - it: should configure AWS platform in spark volumes
+    template: spark.yaml
+    set:
+      global.platform: "aws"
+      dataplane.numVolumes: 2
+    asserts:
+      - contains:
+          path: spec.volumes
+          content:
+            name: spark-local-dir-1
+            hostPath:
+              path: /mnt/disks/nvme1n1/spark-local-dir-1
+      - contains:
+          path: spec.volumes
+          content:
+            name: spark-local-dir-2
+            hostPath:
+              path: /mnt/disks/nvme2n1/spark-local-dir-2
+
+  - it: should configure GCP platform in spark volumes
+    template: spark.yaml
+    set:
+      global.platform: "gcp"
+      dataplane.numVolumes: 2
+    asserts:
+      - contains:
+          path: spec.volumes
+          content:
+            name: spark-local-dir-1
+            hostPath:
+              path: /mnt/disks/ssd0/spark-local-dir-1
+      - contains:
+          path: spec.volumes
+          content:
+            name: spark-local-dir-2
+            hostPath:
+              path: /mnt/disks/ssd1/spark-local-dir-2
+
+  - it: should configure Azure platform with emptyDir volumes
+    template: spark.yaml
+    set:
+      global.platform: "azure"
+      dataplane.numVolumes: 1
+    asserts:
+      - contains:
+          path: spec.volumes
+          content:
+            name: spark-local-dir-1
+            emptyDir: {}
+
+  # DNS record configuration in ingress
+  - it: should configure DNS record in ingress
+    template: ingress.yaml
+    set:
+      ingress.enabled: true
+      global.dnsRecord: "customer.qualytics.io"
+    asserts:
+      - equal:
+          path: spec.rules[0].host
+          value: "customer.qualytics.io"
+        documentIndex: 0
+
+  # Image URL configuration in SparkApplication
+  - it: should configure dataplane image URL
+    template: spark.yaml
+    set:
+      global.imageUrls.dataplaneImageUrl: "custom-registry/dataplane"
+      dataplaneImage.image.dataplaneImageTag: "v2.3.4"
+    asserts:
+      - equal:
+          path: spec.image
+          value: "custom-registry/dataplane:v2.3.4"
+
+  # Ingress configuration tests
+  - it: should enable ingress when configured
+    template: ingress.yaml
+    set:
+      ingress.enabled: true
+      global.dnsRecord: "test.qualytics.io"
+    asserts:
+      - hasDocuments:
+          count: 2
+      - isKind:
+          of: Ingress
+        documentIndex: 0
+
+  - it: should not create ingress when disabled
+    template: ingress.yaml
+    set:
+      ingress.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should configure CORS when enabled
+    template: ingress.yaml
+    set:
+      ingress.enabled: true
+      ingress.cors: true
+      global.dnsRecord: "test.qualytics.io"
+    asserts:
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/enable-cors"]
+          value: "true"
+        documentIndex: 0
+
+  - it: should disable CORS by default
+    template: ingress.yaml
+    set:
+      ingress.enabled: true
+      ingress.cors: false
+      global.dnsRecord: "test.qualytics.io"
+    asserts:
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/enable-cors"]
+          value: "false"
+        documentIndex: 0
+
+  # Global values interaction tests
+  - it: should work with all global values configured for spark
+    template: spark.yaml
+    set:
+      global.platform: "gcp"
+      global.dnsRecord: "production.qualytics.io"
+      global.authType: "OIDC"
+      global.imageUrls.dataplaneImageUrl: "gcr.io/project/dataplane"
+      dataplaneImage.image.dataplaneImageTag: "latest"
+      dataplane.numVolumes: 1
+    asserts:
+      - isKind:
+          of: SparkApplication
+      - equal:
+          path: spec.image
+          value: "gcr.io/project/dataplane:latest"
+      - contains:
+          path: spec.volumes
+          content:
+            name: spark-local-dir-1
+            hostPath:
+              path: /mnt/disks/ssd0/spark-local-dir-1
+
+  # Platform validation
+  - it: should handle different platforms correctly
+    template: spark.yaml
+    set:
+      global.platform: "other"
+      dataplane.numVolumes: 1
+    asserts:
+      - contains:
+          path: spec.volumes
+          content:
+            name: spark-local-dir-1
+            emptyDir: {}

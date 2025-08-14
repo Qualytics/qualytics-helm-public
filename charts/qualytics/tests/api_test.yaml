@@ -1,0 +1,101 @@
+suite: test API/controlplane configuration
+templates:
+  - api.yaml
+tests:
+  # Basic API deployment
+  - it: should create API deployment with correct name
+    asserts:
+      - isKind:
+          of: Deployment
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-api
+        documentIndex: 0
+
+  - it: should create API service
+    asserts:
+      - isKind:
+          of: Service
+        documentIndex: 1
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-api-service
+        documentIndex: 1
+
+  # Replica configuration
+  - it: should configure API replicas
+    set:
+      controlplane.replicas: 3
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 3
+        documentIndex: 0
+
+  # Node selector configuration
+  - it: should configure node selector for API
+    set:
+      appNodeSelector:
+        nodeType: "app"
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeSelector.nodeType
+          value: "app"
+        documentIndex: 0
+
+  # Resource configuration
+  - it: should configure API resources
+    set:
+      controlplane.resources.requests.memory: "2Gi"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: "2Gi"
+        documentIndex: 0
+
+  # Image configuration
+  - it: should configure controlplane image
+    set:
+      global.imageUrls.controlplaneImageUrl: "custom/controlplane"
+      controlplaneImage.image.controlplaneImageTag: "v1.0.0"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: "custom/controlplane:v1.0.0"
+        documentIndex: 0
+
+  # Environment variables
+  - it: should configure global DNS record in API
+    set:
+      global.dnsRecord: "test.qualytics.io"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CORS_ORIGINS
+            value: "test.qualytics.io"
+        documentIndex: 0
+
+  - it: should configure global auth type in API
+    set:
+      global.authType: "OIDC"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: API_AUTH
+            value: "OIDC"
+        documentIndex: 0
+
+  # Platform configuration
+  - it: should configure platform environment variable
+    set:
+      global.platform: "gcp"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: APP_CLOUD_PLATFORM
+            value: "gcp"
+        documentIndex: 0

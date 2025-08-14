@@ -6,7 +6,11 @@ on:
       - main
 
 jobs:
+  test:
+    uses: ./.github/workflows/test.yaml
+
   release:
+    needs: test
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -33,9 +37,6 @@ jobs:
 
       - name: Build Helm Dependencies
         run: helm dependency build charts/qualytics
-
-      - name: Run Helm Lint
-        run: helm lint charts/qualytics && helm template charts/qualytics
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.6.0

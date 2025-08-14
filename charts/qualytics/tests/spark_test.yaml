@@ -1,0 +1,186 @@
+suite: test spark application
+templates:
+  - spark.yaml
+tests:
+  # Basic functionality tests
+  - it: should render SparkApplication with default values
+    asserts:
+      - isKind:
+          of: SparkApplication
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-spark
+      - equal:
+          path: spec.type
+          value: Scala
+      - equal:
+          path: spec.mode
+          value: cluster
+      - equal:
+          path: spec.mainClass
+          value: io.qualytics.dataplane.SparkMothership
+
+  # Platform-specific configurations (template.values.yaml: global.platform)
+  - it: should configure AWS platform volumes correctly
+    set:
+      global.platform: aws
+      dataplane.numVolumes: 2
+    asserts:
+      - contains:
+          path: spec.volumes
+          content:
+            name: spark-local-dir-1
+            hostPath:
+              path: /mnt/disks/nvme1n1/spark-local-dir-1
+      - contains:
+          path: spec.volumes
+          content:
+            name: spark-local-dir-2
+            hostPath:
+              path: /mnt/disks/nvme2n1/spark-local-dir-2
+
+  - it: should configure GCP platform volumes correctly
+    set:
+      global.platform: gcp
+      dataplane.numVolumes: 2
+    asserts:
+      - contains:
+          path: spec.volumes
+          content:
+            name: spark-local-dir-1
+            hostPath:
+              path: /mnt/disks/ssd0/spark-local-dir-1
+      - contains:
+          path: spec.volumes
+          content:
+            name: spark-local-dir-2
+            hostPath:
+              path: /mnt/disks/ssd1/spark-local-dir-2
+
+  # Dataplane configuration tests (template.values.yaml: dataplane.*)
+  - it: should configure driver resources from template values
+    set:
+      dataplane.driver.cores: 4
+      dataplane.driver.memory: "32000m"
+    asserts:
+      - equal:
+          path: spec.driver.cores
+          value: 4
+      - equal:
+          path: spec.driver.memory
+          value: "32000m"
+
+  - it: should configure executor resources from template values
+    set:
+      dataplane.executor.instances: 2
+      dataplane.executor.cores: 8
+      dataplane.executor.memory: "64000m"
+    asserts:
+      - equal:
+          path: spec.executor.instances
+          value: 2
+      - equal:
+          path: spec.executor.cores
+          value: 8
+      - equal:
+          path: spec.executor.memory
+          value: "64000m"
+
+  - it: should configure dynamic allocation from template values
+    set:
+      dataplane.dynamicAllocation.enabled: true
+      dataplane.dynamicAllocation.initialExecutors: 2
+      dataplane.dynamicAllocation.minExecutors: 1
+      dataplane.dynamicAllocation.maxExecutors: 20
+    asserts:
+      - equal:
+          path: spec.dynamicAllocation.enabled
+          value: true
+      - equal:
+          path: spec.dynamicAllocation.initialExecutors
+          value: 2
+      - equal:
+          path: spec.dynamicAllocation.minExecutors
+          value: 1
+      - equal:
+          path: spec.dynamicAllocation.maxExecutors
+          value: 20
+
+  - it: should set parallelism scale factor environment variable
+    set:
+      dataplane.parallelismScaleFactor: 0.5
+    asserts:
+      - contains:
+          path: spec.driver.env
+          content:
+            name: MOTHERSHIP_PARALLELISM_SCALE_FACTOR
+            value: "0.5"
+
+  - it: should set max parallel sync requests environment variable
+    set:
+      dataplane.maxParallelSyncRequests: 5
+    asserts:
+      - contains:
+          path: spec.driver.env
+          content:
+            name: MOTHERSHIP_MAX_PARALLEL_SYNC_REQUESTS
+            value: "5"
+
+  # Volume configuration tests
+  - it: should not have volumes section when no volumes configured
+    set:
+      dataplane.numVolumes: -1
+    asserts:
+      - notExists:
+          path: spec.volumes
+
+  - it: should configure numVolumes from template values
+    set:
+      dataplane.numVolumes: 3
+      global.platform: aws
+    asserts:
+      - lengthEqual:
+          path: spec.volumes
+          count: 3
+      - contains:
+          path: spec.volumes
+          content:
+            name: spark-local-dir-3
+            hostPath:
+              path: /mnt/disks/nvme3n1/spark-local-dir-3
+
+  # Node selector tests (template.values.yaml: *NodeSelector)
+  - it: should configure driver node selector
+    set:
+      driverNodeSelector:
+        driverNodes: "true"
+        zone: "us-east-1a"
+    asserts:
+      - equal:
+          path: spec.driver.nodeSelector.driverNodes
+          value: "true"
+      - equal:
+          path: spec.driver.nodeSelector.zone
+          value: "us-east-1a"
+
+  - it: should configure executor node selector
+    set:
+      executorNodeSelector:
+        executorNodes: "true"
+        instanceType: "c5.large"
+    asserts:
+      - equal:
+          path: spec.executor.nodeSelector.executorNodes
+          value: "true"
+      - equal:
+          path: spec.executor.nodeSelector.instanceType
+          value: "c5.large"
+
+  # ServiceAccount test (template.values.yaml: sparkoperator.spark.serviceAccount.name)
+  - it: should use configured service account
+    set:
+      sparkoperator.spark.serviceAccount.name: "custom-spark-sa"
+    asserts:
+      - equal:
+          path: spec.driver.serviceAccount
+          value: "custom-spark-sa"

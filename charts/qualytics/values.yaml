@@ -32,6 +32,8 @@ sparkoperator:
     - "qualytics" # Set to qualytics target namespace
     serviceAccount:
       name: "qualytics-spark"
+  hook:
+    upgradeCrd: true
 
 nginx:
   enabled: false
