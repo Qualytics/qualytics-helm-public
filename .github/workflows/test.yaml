@@ -131,6 +131,7 @@ jobs:
   # Integration testing with Kind
   integration-test:
     runs-on: ubuntu-latest
+    needs: lint-test
     steps:
       - name: Checkout
         uses: actions/checkout@v3
