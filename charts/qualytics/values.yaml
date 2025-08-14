@@ -7,8 +7,6 @@
 #--------------------------------------------------------------------------------
 sparkoperator:
   enabled: true
-  hook:
-    upgradeCrd: true
   prometheus:
     metrics:
       enable: false
@@ -34,6 +32,8 @@ sparkoperator:
     - "qualytics" # Set to qualytics target namespace
     serviceAccount:
       name: "qualytics-spark"
+  # hook:
+  #   upgradeCrd: true
 
 nginx:
   enabled: false

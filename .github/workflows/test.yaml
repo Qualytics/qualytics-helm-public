@@ -155,6 +155,12 @@ jobs:
       - name: Build dependencies
         run: helm dependency build charts/qualytics
 
+      - name: Install Spark Operator CRDs
+        run: |
+          # Apply Spark Operator CRDs directly from the repository
+          kubectl apply -f https://raw.githubusercontent.com/kubeflow/spark-operator/v2.3.0/charts/spark-operator-chart/crds/sparkoperator.k8s.io_sparkapplications.yaml
+          kubectl apply -f https://raw.githubusercontent.com/kubeflow/spark-operator/v2.3.0/charts/spark-operator-chart/crds/sparkoperator.k8s.io_scheduledsparkapplications.yaml
+
       - name: Test installation (dry-run)
         run: |
           kubectl create namespace qualytics-test || true
