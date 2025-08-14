@@ -1,0 +1,87 @@
+suite: test frontend configuration
+templates:
+  - frontend.yaml
+tests:
+  # Basic frontend deployment
+  - it: should create frontend deployment
+    asserts:
+      - isKind:
+          of: Deployment
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-frontend
+        documentIndex: 0
+
+  - it: should create frontend service
+    asserts:
+      - isKind:
+          of: Service
+        documentIndex: 1
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-frontend-service
+        documentIndex: 1
+
+  # Replica configuration
+  - it: should configure frontend replicas
+    set:
+      frontend.replicas: 2
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 2
+        documentIndex: 0
+
+  # Image configuration
+  - it: should configure frontend image
+    set:
+      global.imageUrls.frontendImageUrl: "custom/frontend"
+      frontendImage.image.frontendImageTag: "v2.0.0"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: "custom/frontend:v2.0.0"
+        documentIndex: 0
+
+  # Node selector configuration
+  - it: should configure frontend node selector
+    set:
+      appNodeSelector:
+        nodeType: "frontend"
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeSelector.nodeType
+          value: "frontend"
+        documentIndex: 0
+
+  # Environment variables
+  - it: should set DNS record environment variable
+    set:
+      global.dnsRecord: "app.qualytics.io"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VITE_QUALYTICS_DNS
+            value: "app.qualytics.io"
+        documentIndex: 0
+
+  - it: should set auth type environment variable
+    set:
+      global.authType: "AUTH0"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: VITE_QUALYTICS_AUTH_PROVIDER
+            value: "AUTH0"
+        documentIndex: 0
+
+  # Image pull policy
+  - it: should use default image pull policy
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].imagePullPolicy
+          value: IfNotPresent
+        documentIndex: 0
