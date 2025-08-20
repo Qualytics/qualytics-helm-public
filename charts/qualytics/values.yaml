@@ -98,13 +98,13 @@ global:
 # Platform image tags
 controlplaneImage:
   image:
-    controlplaneImageTag: "20250808-69c5164"
+    controlplaneImageTag: "20250820-f1d4c95"
 dataplaneImage:
   image:
-    dataplaneImageTag: "20250808-1e53992"
+    dataplaneImageTag: "20250820-6e4fcd2"
 frontendImage:
   image:
-    frontendImageTag: "20250808-f64ec9a"
+    frontendImageTag: "20250820-24af43e"
 
 # Storage classes
 storageClass:
@@ -206,6 +206,11 @@ dataplane:
     instances: 1
     cores: 7
     memory: "55000m"
+  kerberos:
+    enabled: false
+    krb5: ""
+    keytab: ""
+    principal: ""
 
 #--------------------------------------------------------------------------------
 # Controlplane configuration

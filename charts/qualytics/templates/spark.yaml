@@ -33,8 +33,9 @@ spec:
     spark.kubernetes.driver.connectionTimeout: "480000"
     spark.kubernetes.driver.requestTimeout: "480000"
     spark.jars.ivy: "/tmp"
-  {{- if gt ( .Values.dataplane.numVolumes | int ) 0 }}
+  {{- if or (gt ( .Values.dataplane.numVolumes | int ) 0) (eq .Values.dataplane.kerberos.enabled true) }}
   volumes:
+    {{- if gt ( .Values.dataplane.numVolumes | int ) 0 }}
     {{- range $i := until (int .Values.dataplane.numVolumes) }}
     - name: "spark-local-dir-{{ add1 $i }}"
       {{- if ( eq $.Values.global.platform "aws" ) }}
@@ -46,6 +47,21 @@ spec:
       {{- else }}
       emptyDir: {}
       {{- end }}
+    {{- end }}
+    {{- end }}
+    {{- if eq .Values.dataplane.kerberos.enabled true }}
+    - name: krb5-conf
+      secret:
+        items:
+          - key: krb5.conf
+            path: krb5.conf
+        secretName: krb5-conf
+    - name: keytab
+      secret:
+        items:
+          - key: app.keytab
+            path: {{ base .Values.dataplane.kerberos.keytab }}
+        secretName: hive-client-keytab
     {{- end }}
   {{- end }}
   driver:
@@ -117,6 +133,25 @@ spec:
         value: {{ .Values.dataplane.executor.memory | trimSuffix "m" | int | quote }}
       - name: MOTHERSHIP_LIBPOSTAL_DATA_PATH
         value: {{ .Values.dataplane.libpostalDataPath | quote  }}
+    {{- if eq .Values.dataplane.kerberos.enabled true }}
+      - name: MOTHERSHIP_SPARK_KRB_KRB5
+        value: {{ .Values.dataplane.kerberos.krb5 | quote  }}
+      - name: MOTHERSHIP_SPARK_KRB_KEYTAB
+        value: {{ .Values.dataplane.kerberos.keytab | quote  }}
+      - name: MOTHERSHIP_SPARK_KRB_PRINCIPAL
+        value: {{ .Values.dataplane.kerberos.principal | quote  }}
+      - name: KERBEROS_DAEMON_ENABLED
+        value: "false"
+    {{- end }}
+    {{- if eq .Values.dataplane.kerberos.enabled true }}
+    volumeMounts:
+      - name: krb5-conf
+        mountPath: {{ .Values.dataplane.kerberos.krb5 }}
+        subPath: krb5.conf
+      - name: keytab
+        mountPath: {{ .Values.dataplane.kerberos.keytab }}
+        subPath: {{ base .Values.dataplane.kerberos.keytab }}
+    {{- end }}
     labels:
       version: {{ .Values.dataplane.sparkVersion }}
     serviceAccount: {{ .Values.sparkoperator.spark.serviceAccount.name }}
@@ -138,6 +173,19 @@ spec:
        -Djava.library.path=/opt/spark/libs/
        -Duser.timezone=UTC
        -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
+    {{- if eq .Values.dataplane.kerberos.enabled true }}
+    env:
+      - name: KRB5_CONFIG
+        value: {{ .Values.dataplane.kerberos.krb5 | quote }}
+      - name: KRB_KEYTAB
+        value: {{ .Values.dataplane.kerberos.keytab | quote }}
+      - name: KRB_PRINCIPAL
+        value: {{ .Values.dataplane.kerberos.principal | quote }}
+      - name: SPARK_JAVA_OPT_998
+        value: "-Djava.security.krb5.conf={{ .Values.dataplane.kerberos.krb5 }}"
+      - name: SPARK_JAVA_OPT_999
+        value: "-Djavax.security.auth.useSubjectCredsOnly=false"
+    {{- end }}
     labels:
       version: {{ .Values.dataplane.sparkVersion }}
     {{- if .Values.executorNodeSelector }}
@@ -148,12 +196,24 @@ spec:
     tolerations:
       {{- toYaml .Values.tolerations.executorNodeTolerations | nindent 6 }}
     {{- end }}
-    {{- if gt ( .Values.dataplane.numVolumes | int ) 0 }}
+    {{- if or (gt ( .Values.dataplane.numVolumes | int ) 0) (eq .Values.dataplane.kerberos.enabled true) }}
     volumeMounts:
+      {{- if gt ( .Values.dataplane.numVolumes | int ) 0 }}
       {{- range $i := until (int .Values.dataplane.numVolumes) }}
       - name: "spark-local-dir-{{ add1 $i }}"
         mountPath: "/tmp/spark-local-dir-{{ add1 $i }}"
       {{- end }}
+      {{- end }}
+      {{- if eq .Values.dataplane.kerberos.enabled true }}
+      - name: krb5-conf
+        mountPath: {{ .Values.dataplane.kerberos.krb5 }}
+        subPath: krb5.conf
+      - name: keytab
+        mountPath: {{ .Values.dataplane.kerberos.keytab }}
+        subPath: {{ base .Values.dataplane.kerberos.keytab }}
+      {{- end }}
+    {{- end }}
+    {{- if gt ( .Values.dataplane.numVolumes | int ) 0 }}
     initContainers:
     - name: init-spark-local-dir
       image: "{{ tpl .Values.busybox.image.imageUrl . }}:{{ .Values.busybox.image.imageTag }}"
