@@ -97,6 +97,7 @@ controlplane:
 # Dataplane configuration
 #--------------------------------------------------------------------------------
 dataplane:
+  enabled: true
   numVolumes: -1
   parallelismScaleFactor: -1
   maxParallelSyncRequests: 3

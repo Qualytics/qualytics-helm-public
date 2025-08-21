@@ -182,6 +182,7 @@ secrets:
 # Dataplane configuration
 #--------------------------------------------------------------------------------
 dataplane:
+  enabled: true
   sparkVersion: "4.0.0"
   eventLog: false
   numVolumes: -1

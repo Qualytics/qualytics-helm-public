@@ -185,6 +185,23 @@ tests:
           path: spec.driver.serviceAccount
           value: "custom-spark-sa"
 
+  - it: should not render when dataplane is disabled
+    set:
+      dataplane.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should render when dataplane is explicitly enabled
+    set:
+      dataplane.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: SparkApplication
+        documentIndex: 0
+
   - it: should render exactly one SparkApplication
     asserts:
       - hasDocuments:
