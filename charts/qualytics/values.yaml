@@ -20,6 +20,7 @@ sparkoperator:
     #     effect: NoSchedule
   webhook:
     enable: true
+    timeoutSeconds: 30
     nodeSelector: {}
     #   appNodes: "true"
     # tolerations:
