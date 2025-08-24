@@ -27,12 +27,22 @@ spec:
     {{- end }}
   {{- end }}
   sparkConf:
+    spark.kubernetes.executor.podNamePrefix: "{{ .Release.Name }}-spark"
     spark.eventLog.enabled: {{ .Values.dataplane.eventLog | quote }}
     spark.kubernetes.memoryOverheadFactor: {{ .Values.dataplane.memoryOverheadFactor | quote }}
+    # Tweak kubernetes timeouts
     spark.kubernetes.submission.connectionTimeout: "480000"
     spark.kubernetes.submission.requestTimeout: "480000"
     spark.kubernetes.driver.connectionTimeout: "480000"
     spark.kubernetes.driver.requestTimeout: "480000"
+    # Spot resilience optimizations
+    spark.dynamicAllocation.enabled: "true"
+    spark.dynamicAllocation.shuffleTracking.enabled: "true"
+    spark.dynamicAllocation.shuffleTracking.timeout: "60s"
+    spark.dynamicAllocation.executorIdleTimeout: "60s"
+    spark.dynamicAllocation.cachedExecutorIdleTimeout: "300s"
+    spark.dynamicAllocation.sustainedSchedulerBacklogTimeout: "5s"
+    spark.dynamicAllocation.schedulerBacklogTimeout: "1s"
     spark.jars.ivy: "/tmp"
   {{- if or (gt ( .Values.dataplane.numVolumes | int ) 0) (eq .Values.dataplane.kerberos.enabled true) }}
   volumes:
