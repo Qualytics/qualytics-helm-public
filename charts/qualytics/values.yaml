@@ -34,7 +34,7 @@ sparkoperator:
     serviceAccount:
       name: "qualytics-spark"
   hook:
-    upgradeCrd: true
+    upgradeCrd: false
 
 nginx:
   enabled: false
