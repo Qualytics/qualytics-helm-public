@@ -99,13 +99,13 @@ global:
 # Platform image tags
 controlplaneImage:
   image:
-    controlplaneImageTag: "20250904-476d40d"
+    controlplaneImageTag: "20250912-75878a7"
 dataplaneImage:
   image:
-    dataplaneImageTag: "20250904-c823fb1"
+    dataplaneImageTag: "20250912-4d412d9"
 frontendImage:
   image:
-    frontendImageTag: "20250904-e0aa85e"
+    frontendImageTag: "20250912-7577723"
 
 # Storage classes
 storageClass:
@@ -183,7 +183,7 @@ secrets:
 #--------------------------------------------------------------------------------
 dataplane:
   enabled: true
-  sparkVersion: "4.0.0"
+  sparkVersion: "4.0.1"
   eventLog: false
   numVolumes: -1
   parallelismScaleFactor: -1
