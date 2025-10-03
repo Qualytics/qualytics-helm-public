@@ -39,7 +39,7 @@ spec:
     spark.dynamicAllocation.enabled: "true"
     spark.dynamicAllocation.shuffleTracking.enabled: "true"
     spark.dynamicAllocation.shuffleTracking.timeout: "60s"
-    spark.dynamicAllocation.executorIdleTimeout: "60s"
+    spark.dynamicAllocation.executorIdleTimeout: "300s"
     spark.dynamicAllocation.cachedExecutorIdleTimeout: "300s"
     spark.dynamicAllocation.sustainedSchedulerBacklogTimeout: "5s"
     spark.dynamicAllocation.schedulerBacklogTimeout: "1s"
