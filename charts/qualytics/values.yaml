@@ -102,7 +102,7 @@ controlplaneImage:
     controlplaneImageTag: "20251003-92a3894"
 dataplaneImage:
   image:
-    dataplaneImageTag: "20251003-b1ed0b4"
+    dataplaneImageTag: "20251007-e942ddd"
 frontendImage:
   image:
     frontendImageTag: "20251003-ea78c2f"
