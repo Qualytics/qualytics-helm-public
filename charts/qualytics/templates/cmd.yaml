@@ -78,6 +78,26 @@ spec:
               secretKeyRef:
                 name: qualytics-creds
                 key: rabbitmq_password
+          {{- if ( eq .Values.controlplane.smtp.enabled true ) }}
+          - name: SMTP_SERVER
+            value: {{ .Values.controlplane.smtp.server | quote }}
+          - name: SMTP_PORT
+            value: {{ .Values.controlplane.smtp.port | quote }}
+          - name: SMTP_SENDER_EMAIL
+            value: {{ .Values.controlplane.smtp.sender | quote }}
+          {{- if and .Values.secrets.smtp.smtp_sender_user .Values.secrets.smtp.smtp_sender_password }}
+          - name: SMTP_SENDER_USER
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: smtp_sender_user
+          - name: SMTP_SENDER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: smtp_sender_password
+          {{- end }}
+          {{- end }}
 #--------------------------------------------------------------------------------
 # Environments that require a proxy (Http, Socks, etc..) for egress
 #--------------------------------------------------------------------------------

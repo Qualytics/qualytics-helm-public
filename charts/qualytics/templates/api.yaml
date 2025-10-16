@@ -72,7 +72,7 @@ spec:
               secretKeyRef:
                 name: qualytics-creds
                 key: smtp_sender_password
-          {{- end }}
+         {{- end }}
          {{- end }}
           - name: API_ROOT_PATH
             value: /api
