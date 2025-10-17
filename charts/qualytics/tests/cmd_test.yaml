@@ -102,6 +102,28 @@ tests:
         documentIndex: 0
 
   # Environment variables
+  - it: should configure global DNS record in CMD
+    set:
+      global.dnsRecord: "test.qualytics.io"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CORS_ORIGINS
+            value: "test.qualytics.io"
+        documentIndex: 0
+
+  - it: should configure platform environment variable
+    set:
+      global.platform: "gcp"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: APP_CLOUD_PLATFORM
+            value: "gcp"
+        documentIndex: 0
+
   - it: should configure RabbitMQ environment variables
     asserts:
       - contains:

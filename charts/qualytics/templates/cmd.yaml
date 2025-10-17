@@ -35,27 +35,14 @@ spec:
             memory: {{ .Values.controlplaneCmd.resources.memory | quote }}
             cpu: {{ .Values.controlplaneCmd.resources.cpu| quote }}
         env:
-          {{- if ( eq .Values.global.authType "OIDC" ) }}
-          - name: API_AUTH
-            value: OIDC
-          {{- else }}
-          - name: API_AUTH
-            value: AUTH0
-          {{- end }}
-          - name: API_ROOT_PATH
-            value: /api
-          - name: API_ROOT_URL
-            value: {{ printf "http://%s-api-service:8000$(API_ROOT_PATH)" .Release.Name }}
-          - name: SECRETS_PASSPHRASE
-            valueFrom:
-              secretKeyRef:
-                name: qualytics-creds
-                key: secrets_passphrase
-          - name: JWT_SIGNING_SECRET
-            valueFrom:
-              secretKeyRef:
-                name: qualytics-creds
-                key: jwt_signing_secret
+          - name: APP_AUTO_RELOAD
+            value: "False"
+          - name: APP_CLOUD_PLATFORM
+            value: {{ .Values.global.platform | quote }}
+          - name: APP_DEPLOYMENT_SIZE
+            value: {{ include "qualytics.global.size" . | quote }}
+          - name: CORS_ORIGINS
+            value: {{ tpl .Values.global.dnsRecord . | quote }}
           - name: POSTGRES_CONNECTION_URL
             valueFrom:
               secretKeyRef:
@@ -63,21 +50,6 @@ spec:
                 key: connection_url
           - name: DATABASE_URL
             value: "postgresql+psycopg2://$(POSTGRES_CONNECTION_URL)"
-          - name: RABBIT_MQ_HOST
-            value: "{{ .Release.Name }}-rabbitmq"
-          {{- if eq .Values.rabbitmq.tls.enabled false }}
-          - name: RABBIT_MQ_PORT
-            value: "5672"
-          - name: RABBIT_MQ_USE_TLS
-            value: "false"
-          {{- end }}
-          - name: RABBIT_MQ_USER
-            value: "user"
-          - name: RABBIT_MQ_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: qualytics-creds
-                key: rabbitmq_password
           {{- if ( eq .Values.controlplane.smtp.enabled true ) }}
           - name: SMTP_SERVER
             value: {{ .Values.controlplane.smtp.server | quote }}
@@ -96,8 +68,131 @@ spec:
               secretKeyRef:
                 name: qualytics-creds
                 key: smtp_sender_password
+         {{- end }}
+         {{- end }}
+          - name: API_ROOT_PATH
+            value: /api
+          - name: API_ROOT_URL
+            value: {{ printf "http://%s-api-service:8000$(API_ROOT_PATH)" .Release.Name }}
+          - name: SECRETS_PASSPHRASE
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: secrets_passphrase
+          - name: JWT_SIGNING_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: jwt_signing_secret
+          {{- if ( eq .Values.global.authType "OIDC" ) }}
+          - name: API_AUTH
+            value: OIDC
+          - name: OIDC_REDIRECT_URL
+            value: {{ printf "https://%s/callback" .Values.global.dnsRecord }}
+          - name: OIDC_SCOPES
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_scopes
+          - name: OIDC_AUTHORIZATION_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_authorization_endpoint
+          - name: OIDC_TOKEN_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_token_endpoint
+          - name: OIDC_USERINFO_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_userinfo_endpoint
+          - name: OIDC_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_client_id
+          - name: OIDC_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_client_secret
+          - name: OIDC_USER_ID_KEY
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_user_id_key
+          - name: OIDC_USER_EMAIL_KEY
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_user_email_key
+          - name: OIDC_USER_NAME_KEY
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_user_name_key
+          - name: OIDC_USER_FNAME_KEY
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_user_fname_key
+          - name: OIDC_USER_LNAME_KEY
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_user_lname_key
+          - name: OIDC_USER_PICTURE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_user_picture_key
+          - name: OIDC_USER_PROVIDER_KEY
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_user_provider_key
+          - name: OIDC_ALLOW_INSECURE_HTTP
+            value: {{ .Values.secrets.oidc.oidc_allow_insecure_transport | quote }}
+          {{- if .Values.secrets.oidc.oidc_signer_pem_url }}
+          - name: OIDC_SIGNER_PEM_URL
+            value: {{ .Values.secrets.oidc.oidc_signer_pem_url | quote }}
           {{- end }}
+          {{- else }}
+          - name: API_AUTH
+            value: AUTH0
+          - name: AUTH0_DOMAIN
+            value: {{ .Values.secrets.auth0.auth0_domain | quote }}
+          - name: AUTH0_AUDIENCE
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: auth0_audience
+          - name: AUTH0_ORGANIZATION
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: auth0_organization
           {{- end }}
+          - name: RABBIT_MQ_HOST
+            value: "{{ .Release.Name }}-rabbitmq"
+          {{- if eq .Values.rabbitmq.tls.enabled false }}
+          - name: RABBIT_MQ_PORT
+            value: "5672"
+          - name: RABBIT_MQ_USE_TLS
+            value: "false"
+           {{- end }}
+          - name: RABBIT_MQ_USER
+            value: "user"
+          - name: RABBIT_MQ_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: rabbitmq_password
+          - name: VERIFY_CERTIFICATE_SIGNERS
+            value: {{ .Values.controlplane.egress.verifyTLSCertificates | quote }}
 #--------------------------------------------------------------------------------
 # Environments that require a proxy (Http, Socks, etc..) for egress
 #--------------------------------------------------------------------------------
