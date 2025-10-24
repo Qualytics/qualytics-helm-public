@@ -1,0 +1,112 @@
+suite: test ingress resources
+templates:
+  - ingress.yaml
+tests:
+  - it: should not render ingress when disabled
+    set:
+      ingress.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should render ingress resources when enabled
+    set:
+      ingress.enabled: true
+      global.dnsRecord: "test.qualytics.io"
+    asserts:
+      - hasDocuments:
+          count: 2
+      - isKind:
+          of: Ingress
+        documentIndex: 0
+      - isKind:
+          of: Ingress
+        documentIndex: 1
+
+  - it: should create API ingress with correct configuration
+    set:
+      ingress.enabled: true
+      global.dnsRecord: "test.qualytics.io"
+    asserts:
+      - equal:
+          path: metadata.name
+          value: "RELEASE-NAME-api-ingress"
+        documentIndex: 0
+      - equal:
+          path: spec.rules[0].host
+          value: "test.qualytics.io"
+        documentIndex: 0
+      - equal:
+          path: spec.rules[0].http.paths[0].path
+          value: "/api/?(.*)"
+        documentIndex: 0
+
+  - it: should create frontend ingress with correct configuration
+    set:
+      ingress.enabled: true
+      global.dnsRecord: "test.qualytics.io"
+    asserts:
+      - equal:
+          path: metadata.name
+          value: "RELEASE-NAME-frontend-ingress"
+        documentIndex: 1
+      - equal:
+          path: spec.rules[0].host
+          value: "test.qualytics.io"
+        documentIndex: 1
+      - equal:
+          path: spec.rules[0].http.paths[0].path
+          value: "/?(.*)"
+        documentIndex: 1
+
+  - it: should configure TLS when cert-manager is enabled
+    set:
+      ingress.enabled: true
+      global.dnsRecord: "test.qualytics.io"
+      global.certManager.enabled: true
+    asserts:
+      - contains:
+          path: spec.tls
+          content:
+            hosts:
+              - "test.qualytics.io"
+            secretName: "api-tls-cert"
+        documentIndex: 0
+      - contains:
+          path: spec.tls
+          content:
+            hosts:
+              - "test.qualytics.io"
+            secretName: "frontend-tls-cert"
+        documentIndex: 1
+
+  - it: should configure CORS when enabled
+    set:
+      ingress.enabled: true
+      ingress.cors: true
+      global.dnsRecord: "test.qualytics.io"
+    asserts:
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/enable-cors"]
+          value: "true"
+        documentIndex: 0
+
+  - it: should configure rate limiting when enabled
+    set:
+      ingress.enabled: true
+      global.dnsRecord: "test.qualytics.io"
+    asserts:
+      - exists:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/limit-rps"]
+        documentIndex: 0
+
+  - it: should configure ModSecurity when enabled
+    set:
+      ingress.enabled: true
+      ingress.modsecurity.enabled: true
+      global.dnsRecord: "test.qualytics.io"
+    asserts:
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/enable-modsecurity"]
+          value: "true"
+        documentIndex: 0

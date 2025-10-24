@@ -1,0 +1,120 @@
+suite: test storage classes
+templates:
+  - storage-classes.yaml
+tests:
+  - it: should render AWS storage class when platform is AWS
+    set:
+      storageClass.create: true
+      global.platform: "aws"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: StorageClass
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: "aws"
+        documentIndex: 0
+      - equal:
+          path: provisioner
+          value: "ebs.csi.aws.com"
+        documentIndex: 0
+
+  - it: should render GCP storage classes when platform is GCP
+    set:
+      storageClass.create: true
+      global.platform: "gcp"
+    asserts:
+      - hasDocuments:
+          count: 2
+      - isKind:
+          of: StorageClass
+        documentIndex: 0
+      - isKind:
+          of: StorageClass
+        documentIndex: 1
+
+  - it: should configure GCP fast storage class
+    set:
+      storageClass.create: true
+      global.platform: "gcp"
+    asserts:
+      - equal:
+          path: metadata.name
+          value: "gcp-fast"
+        documentIndex: 0
+      - equal:
+          path: provisioner
+          value: "kubernetes.io/gce-pd"
+        documentIndex: 0
+      - equal:
+          path: parameters.type
+          value: "pd-ssd"
+        documentIndex: 0
+
+  - it: should configure GCP slow storage class
+    set:
+      storageClass.create: true
+      global.platform: "gcp"
+    asserts:
+      - equal:
+          path: metadata.name
+          value: "gcp-slow"
+        documentIndex: 1
+      - equal:
+          path: provisioner
+          value: "kubernetes.io/gce-pd"
+        documentIndex: 1
+      - equal:
+          path: parameters.type
+          value: "pd-standard"
+        documentIndex: 1
+
+  - it: should render Azure storage classes when platform is Azure
+    set:
+      storageClass.create: true
+      global.platform: "azure"
+    asserts:
+      - hasDocuments:
+          count: 2
+      - equal:
+          path: metadata.name
+          value: "azure-slow"
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: "azure-fast"
+        documentIndex: 1
+
+  - it: should not render storage class for unsupported platforms
+    set:
+      storageClass.create: true
+      global.platform: "other"
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should set volume binding mode to WaitForFirstConsumer
+    set:
+      storageClass.create: true
+      global.platform: "aws"
+    asserts:
+      - equal:
+          path: volumeBindingMode
+          value: "WaitForFirstConsumer"
+        documentIndex: 0
+
+  - it: should allow volume expansion
+    set:
+      storageClass.create: true
+      global.platform: "gcp"
+    asserts:
+      - equal:
+          path: allowVolumeExpansion
+          value: true
+        documentIndex: 0
+      - equal:
+          path: allowVolumeExpansion
+          value: true
+        documentIndex: 1

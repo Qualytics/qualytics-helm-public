@@ -47,7 +47,7 @@ tests:
   # Resource configuration
   - it: should configure API resources
     set:
-      controlplane.resources.requests.memory: "2Gi"
+      controlplane.resources.memory: "2Gi"
     asserts:
       - equal:
           path: spec.template.spec.containers[0].resources.requests.memory

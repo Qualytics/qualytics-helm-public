@@ -99,13 +99,13 @@ global:
 # Platform image tags
 controlplaneImage:
   image:
-    controlplaneImageTag: "20251017-5b48a50"
+    controlplaneImageTag: "20251023-986363c"
 dataplaneImage:
   image:
-    dataplaneImageTag: "20251015-4d42818"
+    dataplaneImageTag: "20251023-6009068"
 frontendImage:
   image:
-    frontendImageTag: "20251015-1d44645"
+    frontendImageTag: "20251023-3f2535d"
 
 # Storage classes
 storageClass:
@@ -223,20 +223,25 @@ controlplane:
     path: "/api/?(.*)"
     servicePort: "8000"
   resources:
-    memory: "2Gi"
+    memory: "1Gi"
     cpu: "500m"
   smtp:
     enabled: true
     server: "email-smtp.us-east-1.amazonaws.com"
     sender: "no-reply@qualytics.co"
     port: "465"
+  auth:
+    # Enable email-based IDP migration
+    migrateIdpByEmail: ""
+    # SCIM username prefix
+    scimUsernamePrefix: ""
   # Controls certificate validation for all requests, httpx, and smtp_ssl sessions
   egress:
     verifyTLSCertificates: true
 
 controlplaneCmd:
   resources:
-    memory: "2Gi"
+    memory: "6Gi"
     cpu: "500m"
 
 #--------------------------------------------------------------------------------
