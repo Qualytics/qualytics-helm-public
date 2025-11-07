@@ -6,8 +6,8 @@ metadata:
   name: postgres-data-claim
   {{- if ( eq .Values.global.platform "aws" ) }}
   annotations:
-    "ebs.csi.aws.com/iops": "8000"
-    "ebs.csi.aws.com/throughput": "250"
+    "ebs.csi.aws.com/iops": "4000"
+    "ebs.csi.aws.com/throughput": "200"
   {{- end }}
 spec:
   accessModes:

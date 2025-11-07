@@ -201,6 +201,8 @@ spec:
           - name: SCIM_USERNAME_PREFIX
             value: {{ .Values.controlplane.auth.scimUsernamePrefix | quote }}
         {{- end }}
+          - name: MCP_ENABLED
+            value: {{ .Values.controlplane.mcp.enabled | quote }}
 #--------------------------------------------------------------------------------
 # Environments that require a proxy (Http, Socks, etc..) for egress
 #--------------------------------------------------------------------------------

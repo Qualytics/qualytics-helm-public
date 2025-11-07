@@ -36,7 +36,7 @@ metadata:
   name: rabbitmq-data-claim
   {{- if ( eq .Values.global.platform "aws" ) }}
   annotations:
-    "ebs.csi.aws.com/iops": "5000"
+    "ebs.csi.aws.com/iops": "4000"
     "ebs.csi.aws.com/throughput": "200"
   {{- end }}
 spec:
