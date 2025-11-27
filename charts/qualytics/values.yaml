@@ -81,6 +81,7 @@ certmanager:
 ingress:
   enabled: false
   cors: false
+  maxRequestsPerSecondPerIP: 10
 
 #--------------------------------------------------------------------------------
 # Global values
@@ -99,13 +100,13 @@ global:
 # Platform image tags
 controlplaneImage:
   image:
-    controlplaneImageTag: "20251106-c089383"
+    controlplaneImageTag: "20251127-5fc6223"
 dataplaneImage:
   image:
-    dataplaneImageTag: "20251106-f5171fa"
+    dataplaneImageTag: "20251127-d9033c9"
 frontendImage:
   image:
-    frontendImageTag: "20251106-5e1474d"
+    frontendImageTag: "20251127-d21e2ab"
 
 # Storage classes
 storageClass:

@@ -36,3 +36,8 @@ Session.vim
 Chart.lock
 
 .history
+
+**.code/*
+**.claude/*
+
+values-local.yaml*

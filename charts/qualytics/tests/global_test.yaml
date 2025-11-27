@@ -85,7 +85,7 @@ tests:
       global.dnsRecord: "test.qualytics.io"
     asserts:
       - hasDocuments:
-          count: 2
+          count: 3
       - isKind:
           of: Ingress
         documentIndex: 0

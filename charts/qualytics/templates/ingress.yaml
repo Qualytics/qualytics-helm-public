@@ -1,5 +1,105 @@
+{{/* Define common annotations as a named template */}}
+{{- define "common.ingress.annotations" -}}
+{{- if ( eq .Values.certmanager.enabled true ) }}
+cert-manager.io/cluster-issuer: 'letsencrypt'
+{{- end }}
+nginx.ingress.kubernetes.io/proxy-connect-timeout: '3600'
+nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
+nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
+nginx.ingress.kubernetes.io/use-regex: 'true'
+nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
+nginx.ingress.kubernetes.io/enable-gzip: "true"
+nginx.ingress.kubernetes.io/enable-brotli: "true"
+nginx.ingress.kubernetes.io/gzip-types: "application/json application/xml text/html text/plain application/javascript text/css application/x-javascript text/xml application/xml+rss text/javascript"
+nginx.ingress.kubernetes.io/brotli-types: "application/json application/xml text/html text/plain application/javascript text/css application/x-javascript text/xml application/xml+rss text/javascript"
+{{- if ( eq .Values.ingress.cors true ) }}
+nginx.ingress.kubernetes.io/enable-cors: 'true'
+nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, PATCH, OPTIONS, HEAD, DELETE"
+nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+{{- else }}
+nginx.ingress.kubernetes.io/enable-cors: 'false'
+{{- end }}
+# Enable mod security as our WAF (OWASP rules applied selectively per Ingress)
+nginx.ingress.kubernetes.io/enable-modsecurity: 'true'
+nginx.ingress.kubernetes.io/configuration-snippet: |
+  proxy_set_header X-Original-URI $request_uri;
+  more_set_headers "X-Frame-Options: SAMEORIGIN";
+  more_set_headers "X-Content-Type-Options: nosniff";
+  more_set_headers "Referrer-Policy: same-origin";
+  more_set_headers "Strict-Transport-Security: max-age=31536000; includeSubDomains; preload";
+  more_set_headers "Content-Security-Policy: default-src https: blob: data: 'unsafe-eval' 'unsafe-inline'; worker-src https: blob:";
+  more_set_headers "Permissions-Policy: autoplay=(self),cross-origin-isolated=(self),display-capture=(self),encrypted-media=(self),fullscreen=(self),keyboard-map=(self),picture-in-picture=(self),publickey-credentials-get=(self),screen-wake-lock=(self),sync-xhr=(self)";
+  more_set_headers "X-Xss-Protection: 1; mode=block";
+{{- end -}}
+
+
+{{/* Define ModSecurity snippet as a named template */}}
+{{- define "common.modsecurity.snippet" -}}
+# Enable prevention mode. Can be any of: DetectionOnly,On,Off (default is DetectionOnly)
+SecRuleEngine On
+SecRequestBodyAccess On
+# Update config to include PUT/PATCH/DELETE in the allowed HTTP methods
+SecAction "id:900200,phase:1,nolog,pass,t:none,\
+  setvar:tx.allowed_methods=GET HEAD POST OPTIONS PUT PATCH DELETE"
+# Send ModSecurity audit logs to the stdout (only for rejected requests)
+SecAuditLog /dev/stdout
+SecAuditLogParts ABCIJDEFHZ
+SecAuditLogFormat JSON
+SecAuditEngine RelevantOnly # could be On/Off/RelevantOnly
+# addresses SC-14854
+SecRule REQUEST_URI "@rx ^.*/\?(/\?)+/?$" "id:14854,phase:2,deny,status:403"
+# addresses SC-15205
+SecRuleRemoveById 949110
+{{- end -}}
+
 {{- if ( eq .Values.ingress.enabled true ) }}
 ---
+# API Ingress - Streaming endpoints (no buffering, no OWASP Core Rules)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-api-streaming-ingress
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "50"
+    {{- include "common.ingress.annotations" . | nindent 4 }}
+    # Higher priority to match before regular API ingress
+    nginx.ingress.kubernetes.io/priority: "100"
+    # Rate limiting for API endpoints
+    nginx.ingress.kubernetes.io/limit-rps: {{ .Values.ingress.maxRequestsPerSecondPerIP | int | quote }}
+    nginx.ingress.kubernetes.io/limit-burst-multiplier: "2"
+    nginx.ingress.kubernetes.io/limit-req-status-code: "429"
+    # Disable buffering for streaming
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+    # Disable OWASP Core Rules for streaming (performance optimization)
+    nginx.ingress.kubernetes.io/enable-owasp-core-rules: "false"
+    nginx.ingress.kubernetes.io/modsecurity-snippet: |
+      {{- include "common.modsecurity.snippet" . | nindent 6 }}
+      # Lower body limits for streaming (typically GET requests with no body)
+      SecRequestBodyLimit 2621440 # 2.6MB
+      SecRequestBodyNoFilesLimit 2621440 # 2.6MB
+      SecRequestBodyLimitAction Reject
+      SecResponseBodyAccess Off
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - {{ tpl .Values.global.dnsRecord . | quote }}
+      secretName: api-tls-cert
+  rules:
+    - host: {{ tpl .Values.global.dnsRecord . | quote }}
+      http:
+        paths:
+          - path: /api/anomalies/[0-9]+/source-record/download(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ .Release.Name }}-api-service
+                port:
+                  number: {{ .Values.controlplane.ingress.servicePort }}
+---
+# API Ingress - Regular endpoints (with buffering and full OWASP protection)
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -7,68 +107,27 @@ metadata:
   annotations:
     helm.sh/hook: post-install,post-upgrade
     helm.sh/hook-weight: "50"
-    {{- if ( eq .Values.certmanager.enabled true ) }}
-    cert-manager.io/cluster-issuer: 'letsencrypt'
-    {{- end }}
-    nginx.ingress.kubernetes.io/proxy-redirect-from: 'http'
-    nginx.ingress.kubernetes.io/proxy-redirect-to: 'https'
-    nginx.ingress.kubernetes.io/proxy-connect-timeout: '3600'
-    nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
-    nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
+    {{- include "common.ingress.annotations" . | nindent 4 }}
+    # Lower priority than streaming ingress
+    nginx.ingress.kubernetes.io/priority: "10"
+    # Rate limiting for API endpoints
+    nginx.ingress.kubernetes.io/limit-rps: {{ .Values.ingress.maxRequestsPerSecondPerIP | int | quote }}
+    nginx.ingress.kubernetes.io/limit-burst-multiplier: "2"
+    nginx.ingress.kubernetes.io/limit-req-status-code: "429"
+    # Enable buffering for regular endpoints
     nginx.ingress.kubernetes.io/proxy-buffering: "on"
     nginx.ingress.kubernetes.io/proxy-buffer-size: "128k"
+    nginx.ingress.kubernetes.io/proxy-busy-buffers-size: "128k"
     nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
     nginx.ingress.kubernetes.io/proxy-max-temp-file-size: "0"
-    nginx.ingress.kubernetes.io/use-regex: 'true'
-    nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
-    nginx.ingress.kubernetes.io/enable-gzip: "true"
-    nginx.ingress.kubernetes.io/enable-brotli: "true"
-    nginx.ingress.kubernetes.io/gzip-types: "application/json application/xml text/html text/plain application/javascript text/css application/x-javascript text/xml application/xml+rss text/javascript"
-    nginx.ingress.kubernetes.io/brotli-types: "application/json application/xml text/html text/plain application/javascript text/css application/x-javascript text/xml application/xml+rss text/javascript"
-    # Configure API rate limiting tied to authentication header
-    nginx.ingress.kubernetes.io/limit-rps: "10"
-    nginx.ingress.kubernetes.io/limit-burst-multiplier: "2"
-    # Enable mod security as our WAF
-    nginx.ingress.kubernetes.io/enable-modsecurity: 'true'
-    nginx.ingress.kubernetes.io/modsecurity-snippet: |
-      # Enable prevention mode. Can be any of: DetectionOnly,On,Off (default is DetectionOnly)
-      SecRuleEngine On
-      SecRequestBodyAccess On
-      # Max request sizes in bytes (with/without files)
-      # Note NGINX Ingress has its own annotations, keep in sync!
-      SecRequestBodyLimit 20971520 # 20Mb
-      SecRequestBodyNoFilesLimit 2621440 # 2.6Mb
-      SecRequestBodyLimitAction Reject
-      # Update config to include PUT/PATCH/DELETE in the allowed HTTP methods
-      SecAction "id:900200,phase:1,nolog,pass,t:none,\
-        setvar:tx.allowed_methods=GET HEAD POST OPTIONS PUT PATCH DELETE"
-      # Send ModSecurity audit logs to the stdout (only for rejected requests)
-      SecAuditLog /dev/stdout
-      SecAuditLogParts ABCIJDEFHZ
-      SecAuditLogFormat JSON
-      SecAuditEngine RelevantOnly # could be On/Off/RelevantOnly
-      # addresses SC-14854
-      SecRule REQUEST_URI "@rx ^.*/\?(/\?)+/?$" "id:14854,phase:2,deny,status:403"
-      # addresses SC-15205
-      SecRuleRemoveById 949110
-{{- if ( eq .Values.ingress.cors true ) }}
-    nginx.ingress.kubernetes.io/enable-cors: 'true'
-    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, PATCH, OPTIONS, HEAD, DELETE"
-    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
-    nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
-{{- else }}
-    nginx.ingress.kubernetes.io/enable-cors: 'false'
-{{- end }}
+    # Enable OWASP Core Rules for regular API endpoints
     nginx.ingress.kubernetes.io/enable-owasp-core-rules: "true"
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      proxy_set_header X-Original-URI $request_uri;
-      more_set_headers "X-Frame-Options: SAMEORIGIN";
-      more_set_headers "X-Content-Type-Options: nosniff";
-      more_set_headers "Referrer-Policy: same-origin";
-      more_set_headers "Strict-Transport-Security: max-age=31536000; includeSubDomains; preload";
-      more_set_headers "Content-Security-Policy: default-src https: blob: data: 'unsafe-eval' 'unsafe-inline'; worker-src https: blob:";
-      more_set_headers "Permissions-Policy: autoplay=(self),cross-origin-isolated=(self),display-capture=(self),encrypted-media=(self),fullscreen=(self),keyboard-map=(self),picture-in-picture=(self),publickey-credentials-get=(self),screen-wake-lock=(self),sync-xhr=(self)";
-      more_set_headers "X-Xss-Protection: 1; mode=block";
+    nginx.ingress.kubernetes.io/modsecurity-snippet: |
+      {{- include "common.modsecurity.snippet" . | nindent 6 }}
+      # Max request sizes in bytes (with/without files)
+      SecRequestBodyLimit 20971520 # 20MB
+      SecRequestBodyNoFilesLimit 2621440 # 2.6MB
+      SecRequestBodyLimitAction Reject
 spec:
   ingressClassName: nginx
   tls:
@@ -87,6 +146,7 @@ spec:
                 port:
                   number: {{ .Values.controlplane.ingress.servicePort }}
 ---
+# Frontend Ingress (with buffering and full OWASP protection)
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -94,49 +154,19 @@ metadata:
   annotations:
     helm.sh/hook: post-install,post-upgrade
     helm.sh/hook-weight: "50"
-    {{- if ( eq .Values.certmanager.enabled true ) }}
-    cert-manager.io/cluster-issuer: 'letsencrypt'
-    {{- end }}
-    nginx.ingress.kubernetes.io/proxy-redirect-from: 'http'
-    nginx.ingress.kubernetes.io/proxy-redirect-to: 'https'
-    nginx.ingress.kubernetes.io/proxy-connect-timeout: '3600'
-    nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
-    nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
+    {{- include "common.ingress.annotations" . | nindent 4 }}
+    # Disable rate limiting for frontend assets (browser needs to load many assets in parallel)
+    nginx.ingress.kubernetes.io/limit-rps: "0"
     nginx.ingress.kubernetes.io/proxy-buffering: "on"
     nginx.ingress.kubernetes.io/proxy-buffer-size: "128k"
+    nginx.ingress.kubernetes.io/proxy-busy-buffers-size: "128k"
     nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
     nginx.ingress.kubernetes.io/proxy-max-temp-file-size: "0"
-    nginx.ingress.kubernetes.io/use-regex: 'true'
     nginx.ingress.kubernetes.io/rewrite-target: /$1
-    nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
-    nginx.ingress.kubernetes.io/enable-gzip: "true"
-    nginx.ingress.kubernetes.io/enable-brotli: "true"
-    nginx.ingress.kubernetes.io/gzip-types: "application/json application/xml text/html text/plain application/javascript text/css application/x-javascript text/xml application/xml+rss text/javascript"
-    nginx.ingress.kubernetes.io/brotli-types: "application/json application/xml text/html text/plain application/javascript text/css application/x-javascript text/xml application/xml+rss text/javascript"
-    # Enable mod security as our WAF
-    nginx.ingress.kubernetes.io/enable-modsecurity: 'true'
-    nginx.ingress.kubernetes.io/modsecurity-snippet: |
-      # Enable prevention mode. Can be any of: DetectionOnly,On,Off (default is DetectionOnly)
-      SecRuleEngine On
-      SecRequestBodyAccess On
-      SecRequestBodyLimitAction Reject
-      # Send ModSecurity audit logs to the stdout (only for rejected requests)
-      SecAuditLog /dev/stdout
-      SecAuditLogParts ABCIJDEFHZ
-      SecAuditLogFormat JSON
-      SecAuditEngine RelevantOnly # could be On/Off/RelevantOnly
-      # addresses SC-14854
-      SecRule REQUEST_URI "@rx ^.*/\?(/\?)+/?$" "id:14854,phase:2,deny,status:403"
+    # Enable OWASP Core Rules for frontend
     nginx.ingress.kubernetes.io/enable-owasp-core-rules: "true"
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      proxy_set_header X-Original-URI $request_uri;
-      more_set_headers "X-Frame-Options: SAMEORIGIN";
-      more_set_headers "X-Content-Type-Options: nosniff";
-      more_set_headers "Referrer-Policy: same-origin";
-      more_set_headers "Strict-Transport-Security: max-age=31536000; includeSubDomains; preload";
-      more_set_headers "Content-Security-Policy: default-src https: blob: data: 'unsafe-eval' 'unsafe-inline'; worker-src https: blob:";
-      more_set_headers "Permissions-Policy: autoplay=(self),cross-origin-isolated=(self),display-capture=(self),encrypted-media=(self),fullscreen=(self),keyboard-map=(self),picture-in-picture=(self),publickey-credentials-get=(self),screen-wake-lock=(self),sync-xhr=(self)";
-      more_set_headers "X-Xss-Protection: 1; mode=block";
+    nginx.ingress.kubernetes.io/modsecurity-snippet: |
+      {{- include "common.modsecurity.snippet" . | nindent 6 }}
 spec:
   ingressClassName: nginx
   tls:
