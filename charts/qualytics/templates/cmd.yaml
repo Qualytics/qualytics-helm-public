@@ -203,6 +203,8 @@ spec:
         {{- end }}
           - name: MCP_ENABLED
             value: {{ .Values.controlplane.mcp.enabled | quote }}
+          - name: APP_DEPLOYMENT_MODE
+            value: {{ .Values.global.deploymentMode | quote }}
 #--------------------------------------------------------------------------------
 # Environments that require a proxy (Http, Socks, etc..) for egress
 #--------------------------------------------------------------------------------

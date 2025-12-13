@@ -90,6 +90,7 @@ ingress:
 # Keep this for dns records and other specifics that are used across the entire app
 global:
   platform: "aws"
+  deploymentMode: "kubernetes" # kubernetes | databricks
   dnsRecord: "changeme.qualytics.io"
   authType: "AUTH0"
   imageUrls:
@@ -100,13 +101,13 @@ global:
 # Platform image tags
 controlplaneImage:
   image:
-    controlplaneImageTag: "20251127-5fc6223"
+    controlplaneImageTag: "20251212-4640037"
 dataplaneImage:
   image:
-    dataplaneImageTag: "20251127-d9033c9"
+    dataplaneImageTag: "20251212-037a08e"
 frontendImage:
   image:
-    frontendImageTag: "20251127-d21e2ab"
+    frontendImageTag: "20251212-97a8996"
 
 # Storage classes
 storageClass:

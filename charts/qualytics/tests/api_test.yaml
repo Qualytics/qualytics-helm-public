@@ -197,3 +197,23 @@ tests:
             name: MCP_ENABLED
             value: "false"
         documentIndex: 0
+
+  - it: should set APP_DEPLOYMENT_MODE to kubernetes by default
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: APP_DEPLOYMENT_MODE
+            value: "kubernetes"
+        documentIndex: 0
+
+  - it: should set APP_DEPLOYMENT_MODE to databricks when configured
+    set:
+      global.deploymentMode: "databricks"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: APP_DEPLOYMENT_MODE
+            value: "databricks"
+        documentIndex: 0

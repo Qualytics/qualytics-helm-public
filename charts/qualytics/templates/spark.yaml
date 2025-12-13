@@ -1,4 +1,4 @@
-{{- if ( eq .Values.dataplane.enabled true ) }}
+{{- if and ( eq .Values.dataplane.enabled true ) ( eq .Values.global.deploymentMode "kubernetes" ) }}
 apiVersion: "sparkoperator.k8s.io/v1beta2"
 kind: SparkApplication
 metadata:

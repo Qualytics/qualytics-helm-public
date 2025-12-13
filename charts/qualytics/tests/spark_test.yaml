@@ -452,3 +452,29 @@ tests:
             mountPath: "/path/to/hdfs-user.keytab"
             subPath: "hdfs-user.keytab"
         documentIndex: 0
+
+  - it: should not render when deploymentMode is databricks
+    set:
+      global.deploymentMode: "databricks"
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should not render when deploymentMode is databricks even if dataplane is enabled
+    set:
+      dataplane.enabled: true
+      global.deploymentMode: "databricks"
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should render when deploymentMode is kubernetes and dataplane is enabled
+    set:
+      dataplane.enabled: true
+      global.deploymentMode: "kubernetes"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: SparkApplication
+        documentIndex: 0
