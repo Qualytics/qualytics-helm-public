@@ -1,6 +1,6 @@
 ## What is Qualytics?
 
-Qualytics is a closed-source container-native platform for assessing, monitoring, and facilitating enterprise data quality. Learn more [about our product and capabilities here](https://qualytics.co/product/).
+Qualytics is a closed-source container-native platform for assessing, monitoring, and facilitating enterprise data quality. Learn more [about our product and capabilities here](https://qualytics.ai/product/).
 
 ## What is in this chart?
 
@@ -20,28 +20,47 @@ Before deploying Qualytics, ensure you have:
 
 ## How should I use this chart?
 
-Please work with your account manager at Qualytics to secure the right values for your licensed deployment. If you don't yet have an account manager, [please write us here](mailto://hello@qualytics.co) to say hello!
+Please work with your account manager at Qualytics to secure the right values for your licensed deployment. If you don't yet have an account manager, [please write us here](mailto://hello@qualytics.ai) to say hello!
 
 ### 1. Create a CNCF compliant cluster
 
 Qualytics fully supports kubernetes clusters hosted in AWS, GCP, and Azure as well as any CNCF-compliant control plane.
 
-#### Node Requirements
+#### Infrastructure Flexibility
 
-Node(s) with the following labels must be made available:
-- `appNodes=true`
-- `driverNodes=true`
-- `executorNodes=true`
+Qualytics is designed to be flexible and can run on virtually any Kubernetes infrastructure. The platform automatically adapts to available resources, making it compatible with a wide range of cluster configurations. The infrastructure requirements scale based on the volume of data to be processed—smaller datasets can run on minimal resources, while larger data volumes benefit from more powerful configurations.
 
-Nodes with the `driverNodes=true` and `executorNodes=true` labels will be used for Spark jobs, while nodes with the `appNodes=true` label will be used for all other needs. Users have the flexibility to merge the `driverNodes=true` and `executorNodes=true` labels into a single label, `sparkNodes=true`, within the same node group, as long as the provided node group can supply sufficient resources to handle both Spark driver and executors. Alternatively, users may choose not to use node selectors at all, allowing the entire cluster to be used without targeting specific node groups. However, it is highly recommended to set up autoscaling for Apache Spark operations by providing separate node groups with the `driverNodes=true` and `executorNodes=true` labels to ensure optimal performance and scalability.
+#### Node Configuration
 
-|          |          Application Nodes          |               Spark Driver Nodes                |            Spark Executor Nodes            |
-|----------|:-----------------------------------:|:-----------------------------------------------:|:------------------------------------------:|
-| Label    | appNodes=true                       | driverNodes=true                                | executorNodes=true                         |
-| Scaling  | Autoscaling (1 node on-demand)      | Autoscaling (1 node on-demand)                  | Autoscaling (1 - 12 nodes spot)            |
-| EKS      | t3.2xlarge (8 vCPUs, 32 GB)         | r5.2xlarge (8 vCPUs, 64 GB)                     | r5d.2xlarge (8 vCPUs, 64 GB)               |
-| GKE      | n2-standard-8 (8 vCPUs, 32 GB)      | n2-highmem-8 (8 vCPUs, 64 GB)                   | n2-highmem-8 (8 vCPUs, 64 GB)              |
-| AKS      | Standard_D8_v5 (8 vCPUs, 32 GB)     | Standard_E8s_v5 (8 vCPUs, 64 GB)                | Standard_E8s_v5 (8 vCPUs, 64 GB)           |
+For optimal performance and autoscaling, we recommend using dedicated node groups with the following labels:
+- `appNodes=true` — For application components (API, frontend, databases)
+- `driverNodes=true` — For Spark driver
+- `executorNodes=true` — For Spark executors
+
+However, this setup is flexible:
+- **Combined Spark nodes**: Merge driver and executor labels into a single `sparkNodes=true` label if your node group has sufficient resources for both.
+- **No node selectors**: Run on any available cluster nodes without targeting specific groups (disable node selectors in values.yaml).
+- **Single node**: For development or small workloads, the entire platform can run on a single appropriately-sized node.
+
+For production workloads with large data volumes, we recommend separate node groups with autoscaling enabled to ensure optimal performance and cost efficiency.
+
+#### Suggested Instance Types
+
+The table below shows **suggested** instance types for a standard production deployment. These are recommendations based on typical workloads—your actual requirements may vary based on data volume and processing needs.
+
+|          |          Application Nodes          |               Spark Driver Nodes                |               Spark Executor Nodes               |
+|----------|:-----------------------------------:|:-----------------------------------------------:|:------------------------------------------------:|
+| Label    | appNodes=true                       | driverNodes=true                                | executorNodes=true                               |
+| Scaling  | Autoscaling (1 node on-demand)      | Autoscaling (1 node on-demand)                  | Autoscaling (1 - 12 nodes spot)                  |
+| EKS      | m8g.2xlarge (8 vCPUs, 32 GB)        | r8g.2xlarge (8 vCPUs, 64 GB)                    | r8gd.2xlarge (8 vCPUs, 64 GB, 474 GB SSD)        |
+| GKE      | n4-standard-8 (8 vCPUs, 32 GB)      | n4-highmem-8 (8 vCPUs, 64 GB)                   | n2-highmem-8 + Local SSD (8 vCPUs, 64 GB) ¹      |
+| AKS      | Standard_D8s_v6 (8 vCPUs, 32 GB)    | Standard_E8s_v6 (8 vCPUs, 64 GB)                | Standard_E8ds_v5 (8 vCPUs, 64 GB, 300 GB SSD)    |
+
+¹ GKE executor nodes: Attach local SSDs via node pool config (e.g., `--local-nvme-ssd-block count=2` for 750 GB). The N4 series does not support local SSD attachments, so N2 is recommended for executors.
+
+> **Note:** Local SSD storage on executor nodes is recommended for optimal Spark performance but not mandatory. Spark will use remote storage for shuffle and scratch data when local SSD is unavailable.
+
+Contact your [Qualytics account manager](mailto://hello@qualytics.ai) to discuss the right infrastructure sizing for your specific data volumes and processing requirements.
 
 
 #### Docker Registry Secrets
@@ -101,7 +120,7 @@ The `template.values.yaml` file contains essential configurations with sensible 
 
 For advanced configuration, refer to the full `charts/qualytics/values.yaml` file which contains all available options.
 
-Contact your [Qualytics account manager](mailto://hello@qualytics.co) for assistance.
+Contact your [Qualytics account manager](mailto://hello@qualytics.ai) for assistance.
 
 ### 3. Deploy Qualytics to your cluster
 
@@ -142,7 +161,7 @@ Note this IP address as it's needed for the next step!
 You have two options for DNS configuration:
 
 **Option A: Qualytics-managed DNS (Recommended)**
-Send your [account manager](mailto://hello@qualytics.co) the IP address from step 3. Qualytics will assign a DNS record under `*.qualytics.io` (e.g., `https://acme.qualytics.io`) and handle SSL certificate management.
+Send your [account manager](mailto://hello@qualytics.ai) the IP address from step 3. Qualytics will assign a DNS record under `*.qualytics.io` (e.g., `https://acme.qualytics.io`) and handle SSL certificate management.
 
 **Option B: Custom Domain**
 If using your own domain:
@@ -151,7 +170,7 @@ If using your own domain:
 3. Configure SSL certificates (enable `certmanager` or provide your own)
 4. Update any firewall rules to allow traffic to your domain
 
-Contact your [account manager](mailto://hello@qualytics.co) for assistance with either option.
+Contact your [account manager](mailto://hello@qualytics.ai) for assistance with either option.
 
 ## Can I run a fully "air-gapped" deployment?
 
