@@ -26,6 +26,8 @@ Please work with your account manager at Qualytics to secure the right values fo
 
 Qualytics fully supports kubernetes clusters hosted in AWS, GCP, and Azure as well as any CNCF-compliant control plane.
 
+> **Terraform Templates Available**: We provide ready-to-use Terraform templates for provisioning Kubernetes clusters on [AWS (EKS)](./terraform/aws), [GCP (GKE)](./terraform/gcp), and [Azure (AKS)](./terraform/azure). See the [`/terraform`](./terraform) directory for details.
+
 #### Infrastructure Flexibility
 
 Qualytics is designed to be flexible and can run on virtually any Kubernetes infrastructure. The platform automatically adapts to available resources, making it compatible with a wide range of cluster configurations. The infrastructure requirements scale based on the volume of data to be processed—smaller datasets can run on minimal resources, while larger data volumes benefit from more powerful configurations.
