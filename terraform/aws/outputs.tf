@@ -58,20 +58,20 @@ output "public_subnets" {
 output "node_groups" {
   description = "Map of node group names to their configurations"
   value = {
-    app_nodes = {
-      name           = module.eks.eks_managed_node_groups["app-nodes"].node_group_id
+    app = {
+      name           = module.eks.eks_managed_node_groups["app"].node_group_id
       instance_types = var.app_node_instance_types
       min_size       = var.app_node_min_size
       max_size       = var.app_node_max_size
     }
-    driver_nodes = {
-      name           = module.eks.eks_managed_node_groups["driver-nodes"].node_group_id
+    driver = {
+      name           = module.eks.eks_managed_node_groups["driver"].node_group_id
       instance_types = var.driver_node_instance_types
       min_size       = var.driver_node_min_size
       max_size       = var.driver_node_max_size
     }
-    executor_nodes = {
-      name           = module.eks.eks_managed_node_groups["executor-nodes"].node_group_id
+    exec = {
+      name           = module.eks.eks_managed_node_groups["exec"].node_group_id
       instance_types = var.executor_node_instance_types
       min_size       = var.executor_node_min_size
       max_size       = var.executor_node_max_size

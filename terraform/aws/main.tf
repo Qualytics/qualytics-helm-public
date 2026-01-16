@@ -174,8 +174,8 @@ module "eks" {
 
   eks_managed_node_groups = {
     # Application Nodes - for API, Frontend, PostgreSQL, RabbitMQ, and operators
-    app-nodes = {
-      name            = "${local.name}-app-nodes"
+    app = {
+      name            = "${local.name}-app"
       use_name_prefix = false
 
       instance_types = var.app_node_instance_types
@@ -204,8 +204,8 @@ module "eks" {
     }
 
     # Spark Driver Nodes
-    driver-nodes = {
-      name            = "${local.name}-driver-nodes"
+    driver = {
+      name            = "${local.name}-driver"
       use_name_prefix = false
 
       instance_types = var.driver_node_instance_types
@@ -234,8 +234,8 @@ module "eks" {
     }
 
     # Spark Executor Nodes - with local NVMe SSDs for optimal Spark performance
-    executor-nodes = {
-      name            = "${local.name}-executor-nodes"
+    exec = {
+      name            = "${local.name}-exec"
       use_name_prefix = false
 
       instance_types = var.executor_node_instance_types
