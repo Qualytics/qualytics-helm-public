@@ -1,0 +1,111 @@
+################################################################################
+# Qualytics GKE - Example Configuration
+#
+# Copy this file to terraform.tfvars and customize the values for your
+# deployment. Required values are marked with "REQUIRED".
+################################################################################
+
+#-------------------------------------------------------------------------------
+# General Configuration
+#-------------------------------------------------------------------------------
+
+# GCP project ID (REQUIRED)
+project_id = "your-gcp-project-id"
+
+# GCP region for the GKE cluster
+region = "us-central1"
+
+# Name of the GKE cluster
+cluster_name = "qualytics"
+
+# Default labels applied to all resources
+default_labels = {
+  terraform   = "true"
+  application = "qualytics"
+  environment = "production"
+}
+
+# Enable deletion protection (recommended for production)
+deletion_protection = true
+
+#-------------------------------------------------------------------------------
+# Networking
+#-------------------------------------------------------------------------------
+
+# Subnet CIDR for GKE nodes
+subnet_cidr = "10.10.0.0/16"
+
+# Secondary range for pods
+pods_cidr = "10.11.0.0/16"
+
+# Secondary range for services
+services_cidr = "10.12.0.0/16"
+
+# Master authorized networks - restrict to your IP ranges for security
+master_authorized_networks = [
+  {
+    cidr_block   = "0.0.0.0/0"
+    display_name = "Public Access"
+  }
+]
+
+#-------------------------------------------------------------------------------
+# Application Nodes
+# For: API, Frontend, PostgreSQL, RabbitMQ, Spark Operator, Cert-Manager
+#-------------------------------------------------------------------------------
+
+# Machine type - n4-standard-8 (8 vCPUs, 32 GB) recommended
+app_node_machine_type = "n4-standard-8"
+
+# Node counts
+app_node_min_size = 1
+app_node_max_size = 3
+
+#-------------------------------------------------------------------------------
+# Spark Driver Nodes
+# For: Spark driver process
+#-------------------------------------------------------------------------------
+
+# Machine type - n4-highmem-8 (8 vCPUs, 64 GB memory) recommended
+driver_node_machine_type = "n4-highmem-8"
+
+# Node counts
+driver_node_min_size = 0
+driver_node_max_size = 1
+
+#-------------------------------------------------------------------------------
+# Spark Executor Nodes
+# For: Spark executor processes (data processing)
+#-------------------------------------------------------------------------------
+
+# Machine type - n2-highmem-8 (8 vCPUs, 64 GB) recommended
+# Note: N2 series required for local SSD support
+executor_node_machine_type = "n2-highmem-8"
+
+# Node counts - scales based on workload
+executor_node_min_size = 1
+executor_node_max_size = 12
+
+# Use spot instances for cost savings
+executor_use_spot = true
+
+# Number of local SSDs (375GB each) - 2 recommended for Spark performance
+executor_local_ssd_count = 2
+
+#-------------------------------------------------------------------------------
+# Node Configuration
+#-------------------------------------------------------------------------------
+
+# Enable taints to ensure workloads run on appropriate nodes (requires matching tolerations in values.yaml)
+enable_node_taints = false
+
+#-------------------------------------------------------------------------------
+# Optional Features
+#-------------------------------------------------------------------------------
+
+# Create the qualytics namespace
+create_qualytics_namespace = true
+
+# Docker registry token (REQUIRED - provided by Qualytics)
+# Uncomment and set this to automatically create the registry secret
+# docker_registry_token = "your-token-from-qualytics"
