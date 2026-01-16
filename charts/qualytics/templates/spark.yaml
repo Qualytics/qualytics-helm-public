@@ -1,3 +1,4 @@
+{{- if and ( eq .Values.dataplane.enabled true ) ( eq .Values.global.deploymentMode "kubernetes" ) }}
 apiVersion: "sparkoperator.k8s.io/v1beta2"
 kind: SparkApplication
 metadata:
@@ -5,62 +6,96 @@ metadata:
 spec:
   type: Scala
   mode: cluster
-  image: "{{ tpl .Values.global.imageUrls.firewallImageUrl . }}:{{ .Values.firewallImage.image.firewallImageTag }}"
+  image: "{{ tpl .Values.global.imageUrls.dataplaneImageUrl . }}:{{ .Values.dataplaneImage.image.dataplaneImageTag }}"
   imagePullPolicy: IfNotPresent
   imagePullSecrets:
     - regcred
   restartPolicy:
     type: Always
-    onFailureRetries: 10
+    onFailureRetries: 1000
     onFailureRetryInterval: 10
-    onSubmissionFailureRetries: 10
+    onSubmissionFailureRetries: 1000
     onSubmissionFailureRetryInterval: 10
-  mainClass: io.qualytics.firewall.SparkMothership
-  mainApplicationFile: "local:///opt/spark/jars/firewall-core.jar"
-  sparkVersion: {{ .Values.firewall.sparkVersion }}
+  sparkVersion: {{ .Values.dataplane.sparkVersion }}
+  mainClass: io.qualytics.dataplane.SparkMothership
+  mainApplicationFile: "local:///opt/spark/jars/qualytics-dataplane.jar"
+  {{- if .Values.dataplane.extraPackages }}
+  deps:
+    packages:
+    {{- range .Values.dataplane.extraPackages }}
+      - {{ . | quote }}
+    {{- end }}
+  {{- end }}
   sparkConf:
-    spark.eventLog.enabled: {{ .Values.firewall.eventLog | quote }}
-    spark.dynamicAllocation.shuffleTracking.enabled: "true"
-    # spark.kubernetes.memoryOverheadFactor: "0.2"
+    spark.kubernetes.executor.podNamePrefix: "{{ .Release.Name }}-spark"
+    spark.eventLog.enabled: {{ .Values.dataplane.eventLog | quote }}
+    spark.kubernetes.memoryOverheadFactor: {{ .Values.dataplane.memoryOverheadFactor | quote }}
+    # Tweak kubernetes timeouts
     spark.kubernetes.submission.connectionTimeout: "480000"
     spark.kubernetes.submission.requestTimeout: "480000"
     spark.kubernetes.driver.connectionTimeout: "480000"
     spark.kubernetes.driver.requestTimeout: "480000"
+    # Spot resilience optimizations
+    spark.dynamicAllocation.enabled: "true"
+    spark.dynamicAllocation.shuffleTracking.enabled: "true"
+    spark.dynamicAllocation.shuffleTracking.timeout: "60s"
+    spark.dynamicAllocation.executorIdleTimeout: "300s"
+    spark.dynamicAllocation.cachedExecutorIdleTimeout: "300s"
+    spark.dynamicAllocation.sustainedSchedulerBacklogTimeout: "5s"
+    spark.dynamicAllocation.schedulerBacklogTimeout: "1s"
+    spark.jars.ivy: "/tmp"
+  {{- if or (gt ( .Values.dataplane.numVolumes | int ) 0) (eq .Values.dataplane.kerberos.enabled true) }}
   volumes:
-    - name: "spark-local-dir-driver"
-    {{- if ( eq .Values.global.platform "aws" ) }}
+    {{- if gt ( .Values.dataplane.numVolumes | int ) 0 }}
+    {{- range $i := until (int .Values.dataplane.numVolumes) }}
+    - name: "spark-local-dir-{{ add1 $i }}"
+      {{- if ( eq $.Values.global.platform "aws" ) }}
       hostPath:
-        path: "/local-1/spark-local-dir"
-    {{- else if ( eq .Values.global.platform "gcp" ) }}
+        path: "/mnt/disks/nvme{{ add1 $i }}n1/spark-local-dir-{{ add1 $i }}"
+      {{- else if ( eq $.Values.global.platform "gcp" ) }}
       hostPath:
-        path: "/var/spark-local-dir"
-    {{- else }}
+        path: "/mnt/disks/ssd{{ $i }}/spark-local-dir-{{ add1 $i }}"
+      {{- else }}
       emptyDir: {}
+      {{- end }}
     {{- end }}
-    - name: "spark-local-dir-executor"
-    {{- if ( eq .Values.global.platform "aws" ) }}
-      hostPath:
-        path: "/local-1/spark-local-dir"
-    {{- else if ( eq .Values.global.platform "gcp" ) }}
-      hostPath:
-        path: "/var/spark-local-dir"
-    {{- else }}
-      emptyDir: {}
     {{- end }}
+    {{- if eq .Values.dataplane.kerberos.enabled true }}
+    - name: krb5-conf
+      secret:
+        items:
+          - key: krb5.conf
+            path: krb5.conf
+        secretName: krb5-conf
+    - name: keytab
+      secret:
+        items:
+          - key: app.keytab
+            path: {{ base .Values.dataplane.kerberos.keytab }}
+        secretName: hive-client-keytab
+    {{- end }}
+  {{- end }}
   driver:
-{{- $resources := .Values.firewall -}}
+{{- $resources := .Values.dataplane -}}
     {{- with $resources.driver }}
-    nodeSelector:
-      sparkNodes: "true"
     cores: {{ .cores }}
-    coreLimit: {{ .coreLimit }}
     memory: {{ .memory }}
+    {{- end }}
+    {{- if .Values.driverNodeSelector }}
+    nodeSelector:
+      {{- toYaml .Values.driverNodeSelector | nindent 6 }}
+    {{- end }}
+    {{- if .Values.tolerations.driverNodeTolerations }}
+    tolerations:
+      {{- toYaml .Values.tolerations.driverNodeTolerations | nindent 6 }}
     {{- end }}
     javaOptions:
       "-Divy.cache.dir=/tmp
        -Divy.home=/tmp
-       -Dlog4j.configuration=file:/opt/spark/log4j.properties
+       -Dlog4j.configurationFile=file:/opt/spark/log4j2.properties
        -Dconfig.resource=prod.conf
+       -Djava.library.path=/opt/spark/libs/
+       -Duser.timezone=UTC
        -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
 #--------------------------------------------------------------------------------
 # Environments that require a proxy (Http, Socks, etc..) for egress
@@ -80,63 +115,57 @@ spec:
 #  -Dhttp.proxyPassword=your_password
 #
     env:
-      - name: MOTHERSHIP_SURVEILLANCE_HUB_URL
-        value: {{ printf "http://%s-api-service:%s/api" .Release.Name .Values.hub.ingress.servicePort }}
-      - name: MOTHERSHIP_AUTH0_DOMAIN
-        value: "https://{{ .Values.secrets.auth0.auth0_domain }}"
-      - name: MOTHERSHIP_AUTH0_AUDIENCE
-        valueFrom:
-          secretKeyRef:
-            name: qualytics-creds
-            key: auth0_audience
-      - name: MOTHERSHIP_AUTH0_CLIENT_ID
-        valueFrom:
-          secretKeyRef:
-            name: qualytics-creds
-            key: auth0_client_id
-      - name: MOTHERSHIP_AUTH0_CLIENT_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: qualytics-creds
-            key: auth0_client_secret
       - name: MOTHERSHIP_RABBIT_HOST
         value: "{{ .Release.Name }}-rabbitmq"
+      {{- if eq .Values.rabbitmq.tls.enabled false }}
+      - name: MOTHERSHIP_RABBIT_PORT
+        value: "5672"
+      - name: MOTHERSHIP_RABBIT_USE_TLS
+        value: "false"
+      {{- end }}
+      - name: MOTHERSHIP_RABBIT_USER
+        value: "user"
       - name: MOTHERSHIP_RABBIT_PASS
         valueFrom:
           secretKeyRef:
             name: qualytics-creds
             key: rabbitmq_password
-      - name: MOTHERSHIP_RABBIT_USER
-        value: "user"
-    {{- if gt ( .Values.firewall.threadPoolParallelism | int ) 0 }}
-      - name: MOTHERSHIP_THREAD_POOL_PARALLELISM
-        value: {{ .Values.firewall.threadPoolParallelism | quote }}
+    {{- if gt ( .Values.dataplane.parallelismScaleFactor | float64 ) 0.0 }}
+      - name: MOTHERSHIP_PARALLELISM_SCALE_FACTOR
+        value: {{ .Values.dataplane.parallelismScaleFactor | quote }}
     {{- end }}
-      - name: MOTHERSHIP_USE_CACHE
-        value: {{ .Values.firewall.useCache | quote }}
+      - name: MOTHERSHIP_MAX_PARALLEL_SYNC_REQUESTS
+        value: {{ .Values.dataplane.maxParallelSyncRequests | quote }}
       - name: MOTHERSHIP_MAX_EXECUTORS
-        value: {{ .Values.firewall.maxExecutors | int | quote }}
+        value: {{ .Values.dataplane.dynamicAllocation.maxExecutors | int | quote }}
       - name: MOTHERSHIP_NUM_CORES_PER_EXECUTOR
-        value: {{ .Values.firewall.numCoresPerExecutor | int | quote  }}
-      - name: MOTHERSHIP_FREE_DISK_PER_EXECUTOR
-        value: {{ .Values.firewall.freeDiskPerExecutor | int | quote  }}
-    labels:
-      version: {{ .Values.firewall.sparkVersion }}
-    serviceAccount: {{ .Release.Name }}-spark
+        value: {{ .Values.dataplane.executor.cores | int | quote  }}
+      - name: MOTHERSHIP_MAX_MEMORY_PER_EXECUTOR
+        value: {{ .Values.dataplane.executor.memory | trimSuffix "m" | int | quote }}
+      - name: MOTHERSHIP_LIBPOSTAL_DATA_PATH
+        value: {{ .Values.dataplane.libpostalDataPath | quote  }}
+    {{- if eq .Values.dataplane.kerberos.enabled true }}
+      - name: MOTHERSHIP_SPARK_KRB_KRB5
+        value: {{ .Values.dataplane.kerberos.krb5 | quote  }}
+      - name: MOTHERSHIP_SPARK_KRB_KEYTAB
+        value: {{ .Values.dataplane.kerberos.keytab | quote  }}
+      - name: MOTHERSHIP_SPARK_KRB_PRINCIPAL
+        value: {{ .Values.dataplane.kerberos.principal | quote  }}
+      - name: KERBEROS_DAEMON_ENABLED
+        value: "false"
+    {{- end }}
+    {{- if eq .Values.dataplane.kerberos.enabled true }}
     volumeMounts:
-      - name: "spark-local-dir-driver"
-        mountPath: "/tmp/spark-local-dir"
-    securityContext:
-      runAsUser: 185
-    initContainers:
-    - name: init-spark-local-dir
-      image: busybox
-      command: ['sh', '-c', 'chmod 777 /tmp/spark-local-dir']
-      securityContext:
-        runAsUser: 0
-      volumeMounts:
-      - name: "spark-local-dir-driver"
-        mountPath: "/tmp/spark-local-dir"
+      - name: krb5-conf
+        mountPath: {{ .Values.dataplane.kerberos.krb5 }}
+        subPath: krb5.conf
+      - name: keytab
+        mountPath: {{ .Values.dataplane.kerberos.keytab }}
+        subPath: {{ base .Values.dataplane.kerberos.keytab }}
+    {{- end }}
+    labels:
+      version: {{ .Values.dataplane.sparkVersion }}
+    serviceAccount: {{ .Values.sparkoperator.spark.serviceAccount.name }}
   dynamicAllocation:
     {{- with $resources.dynamicAllocation }}
     enabled: true
@@ -148,27 +177,65 @@ spec:
     {{- with $resources.executor }}
     instances: {{ .instances }}
     cores: {{ .cores }}
-    coreLimit: {{ .coreLimit }}
     memory: {{ .memory }}
     {{- end }}
     javaOptions:
-      "-Dlog4j.configuration=file:/opt/spark/log4j.properties
+      "-Dlog4j.configurationFile=file:/opt/spark/log4j2.properties
+       -Djava.library.path=/opt/spark/libs/
+       -Duser.timezone=UTC
        -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:InitiatingHeapOccupancyPercent=35"
+    {{- if eq .Values.dataplane.kerberos.enabled true }}
+    env:
+      - name: KRB5_CONFIG
+        value: {{ .Values.dataplane.kerberos.krb5 | quote }}
+      - name: KRB_KEYTAB
+        value: {{ .Values.dataplane.kerberos.keytab | quote }}
+      - name: KRB_PRINCIPAL
+        value: {{ .Values.dataplane.kerberos.principal | quote }}
+      - name: SPARK_JAVA_OPT_998
+        value: "-Djava.security.krb5.conf={{ .Values.dataplane.kerberos.krb5 }}"
+      - name: SPARK_JAVA_OPT_999
+        value: "-Djavax.security.auth.useSubjectCredsOnly=false"
+    {{- end }}
     labels:
-      version: {{ .Values.firewall.sparkVersion }}
+      version: {{ .Values.dataplane.sparkVersion }}
+    {{- if .Values.executorNodeSelector }}
     nodeSelector:
-      sparkNodes: "true"
+      {{- toYaml .Values.executorNodeSelector | nindent 6 }}
+    {{- end }}
+    {{- if .Values.tolerations.executorNodeTolerations }}
+    tolerations:
+      {{- toYaml .Values.tolerations.executorNodeTolerations | nindent 6 }}
+    {{- end }}
+    {{- if or (gt ( .Values.dataplane.numVolumes | int ) 0) (eq .Values.dataplane.kerberos.enabled true) }}
     volumeMounts:
-      - name: "spark-local-dir-executor"
-        mountPath: "/tmp/spark-local-dir"
-    securityContext:
-      runAsUser: 185
+      {{- if gt ( .Values.dataplane.numVolumes | int ) 0 }}
+      {{- range $i := until (int .Values.dataplane.numVolumes) }}
+      - name: "spark-local-dir-{{ add1 $i }}"
+        mountPath: "/tmp/spark-local-dir-{{ add1 $i }}"
+      {{- end }}
+      {{- end }}
+      {{- if eq .Values.dataplane.kerberos.enabled true }}
+      - name: krb5-conf
+        mountPath: {{ .Values.dataplane.kerberos.krb5 }}
+        subPath: krb5.conf
+      - name: keytab
+        mountPath: {{ .Values.dataplane.kerberos.keytab }}
+        subPath: {{ base .Values.dataplane.kerberos.keytab }}
+      {{- end }}
+    {{- end }}
+    {{- if gt ( .Values.dataplane.numVolumes | int ) 0 }}
     initContainers:
     - name: init-spark-local-dir
-      image: busybox
-      command: ['sh', '-c', 'chmod 777 /tmp/spark-local-dir']
+      image: "{{ tpl .Values.busybox.image.imageUrl . }}:{{ .Values.busybox.image.imageTag }}"
+      imagePullPolicy: IfNotPresent
+      command: ['sh', '-c', 'chmod 777 /tmp/spark-local-dir-*']
       securityContext:
         runAsUser: 0
       volumeMounts:
-      - name: "spark-local-dir-executor"
-        mountPath: "/tmp/spark-local-dir"
+      {{- range $i := until (int .Values.dataplane.numVolumes) }}
+      - name: "spark-local-dir-{{ add1 $i }}"
+        mountPath: "/tmp/spark-local-dir-{{ add1 $i }}"
+      {{- end }}
+    {{- end }}
+{{- end }}

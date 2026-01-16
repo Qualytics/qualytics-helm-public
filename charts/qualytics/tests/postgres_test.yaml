@@ -1,0 +1,131 @@
+suite: test postgres configuration
+templates:
+  - postgres.yaml
+tests:
+  # Basic PostgreSQL functionality when enabled
+  - it: should create postgres resources when enabled
+    set:
+      postgres.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 6
+
+  - it: should create postgres StatefulSet when enabled
+    set:
+      postgres.enabled: true
+    asserts:
+      - isKind:
+          of: StatefulSet
+        documentIndex: 2
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-postgres
+        documentIndex: 2
+
+  # PostgreSQL service
+  - it: should create postgres service when enabled
+    set:
+      postgres.enabled: true
+    asserts:
+      - isKind:
+          of: Service
+        documentIndex: 1
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-postgres
+        documentIndex: 1
+      - equal:
+          path: spec.ports[0].port
+          value: 5432
+        documentIndex: 1
+
+  # PVC configuration
+  - it: should create postgres data PVC with custom size
+    set:
+      postgres.enabled: true
+      postgres.pvc.storageSize: "100Gi"
+    asserts:
+      - isKind:
+          of: PersistentVolumeClaim
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: postgres-data-claim
+        documentIndex: 0
+      - equal:
+          path: spec.resources.requests.storage
+          value: "100Gi"
+        documentIndex: 0
+
+  - it: should create postgres backup PVC with custom size
+    set:
+      postgres.enabled: true
+      postgres.pvc.backupStorageSize: "50Gi"
+    asserts:
+      - isKind:
+          of: PersistentVolumeClaim
+        documentIndex: 3
+      - equal:
+          path: metadata.name
+          value: postgres-snapshots-claim
+        documentIndex: 3
+      - equal:
+          path: spec.resources.requests.storage
+          value: "50Gi"
+        documentIndex: 3
+
+  # Node selector configuration
+  - it: should configure postgres node selector
+    set:
+      postgres.enabled: true
+      appNodeSelector:
+        nodeType: "database"
+        storageType: "ssd"
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeSelector.nodeType
+          value: "database"
+        documentIndex: 2
+      - equal:
+          path: spec.template.spec.nodeSelector.storageType
+          value: "ssd"
+        documentIndex: 2
+
+  # Environment variables
+  - it: should configure postgres environment variables
+    set:
+      postgres.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_USER
+            value: "postgres"
+        documentIndex: 2
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: POSTGRES_DB
+            value: "surveillance_hub"
+        documentIndex: 2
+
+  # CronJob for snapshots
+  - it: should create postgres snapshot cronjob
+    set:
+      postgres.enabled: true
+    asserts:
+      - isKind:
+          of: CronJob
+        documentIndex: 4
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-postgres-snapshotter
+        documentIndex: 4
+
+  # PostgreSQL disabled
+  - it: should not create postgres resources when disabled
+    set:
+      postgres.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0

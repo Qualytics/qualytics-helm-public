@@ -6,7 +6,11 @@ on:
       - main
 
 jobs:
+  test:
+    uses: ./.github/workflows/test.yaml
+
   release:
+    needs: test
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -24,7 +28,17 @@ jobs:
       - name: Install Helm
         uses: azure/setup-helm@v3
 
+      - name: Add Helm Dependencies
+        run: |
+          helm repo add spark-operator https://kubeflow.github.io/spark-operator
+          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+          helm repo add jetstack https://charts.jetstack.io
+          helm repo update
+
+      - name: Build Helm Dependencies
+        run: helm dependency build charts/qualytics
+
       - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.5.0
+        uses: helm/chart-releaser-action@v1.6.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

@@ -3,50 +3,22 @@ kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-rabbitmq-config
 data:
-  enabled_plugins: |
-    [rabbitmq_federation,rabbitmq_management,rabbitmq_peer_discovery_k8s].
-  rabbitmq.conf: |
+  enabled_plugins: |-
+    [rabbitmq_management].
+  rabbitmq.conf: |-
     default_user = user
     loopback_users.user = false
     listeners.tcp.default = 5672
-    cluster_formation.peer_discovery_backend  = rabbit_peer_discovery_k8s
-    cluster_formation.k8s.host = kubernetes.default.svc.cluster.local
-    cluster_formation.k8s.address_type = hostname
-    cluster_formation.node_cleanup.only_log_warning = true
-    cluster_formation.node_cleanup.interval = 30
-    cluster_partition_handling = autoheal
-
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: {{ .Release.Name }}-rabbitmq
-
----
-kind: Role
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: {{ .Release.Name }}-rabbitmq
-rules:
-- apiGroups: [""]
-  resources: ["endpoints"]
-  verbs: ["get"]
-- apiGroups: [""]
-  resources: ["events"]
-  verbs: ["create"]
-
----
-kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: {{ .Release.Name }}-rabbitmq
-subjects:
-- kind: ServiceAccount
-  name: {{ .Release.Name }}-rabbitmq
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: {{ .Release.Name }}-rabbitmq
+{{ if and .Values.certmanager.enabled .Values.rabbitmq.tls.enabled }}
+    # TLS configuration
+    listeners.ssl.default = 5671
+    ssl_options.certfile   = /etc/rabbitmq/tls/tls.crt
+    ssl_options.keyfile    = /etc/rabbitmq/tls/tls.key
+    ssl_options.verify     = verify_none
+    ssl_options.fail_if_no_peer_cert = false
+{{ end }}
+    consumer_timeout = 3600000 # 60 minutes in milliseconds
+    max_message_size = 536870912  # 512 mb in bytes
 
 ---
 apiVersion: v1
@@ -62,15 +34,22 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: rabbitmq-data-claim
+  {{- if ( eq .Values.global.platform "aws" ) }}
+  annotations:
+    "ebs.csi.aws.com/iops": "4000"
+    "ebs.csi.aws.com/throughput": "200"
+  {{- end }}
 spec:
   accessModes:
     - ReadWriteOnce
   volumeMode: Filesystem
-  {{- if ( eq .Values.global.platform "aws" ) }}
+  {{- if and ( eq .Values.storageClass.create false ) (ne ( .Values.storageClass.name ) "") }}
+  storageClassName: {{ .Values.storageClass.name }}
+  {{- else if and ( eq .Values.storageClass.create true ) ( eq .Values.global.platform "aws" ) }}
   storageClassName: aws
-  {{- else if ( eq .Values.global.platform "gcp" ) }}
+  {{- else if and ( eq .Values.storageClass.create true ) ( eq .Values.global.platform "gcp" ) }}
   storageClassName: gcp-fast
-  {{- else if ( eq .Values.global.platform "azure" ) }}
+  {{- else if and ( eq .Values.storageClass.create true ) ( eq .Values.global.platform "azure" ) }}
   storageClassName: azure-fast
   {{- end }}
   resources:
@@ -93,12 +72,20 @@ spec:
       labels:
         app: {{ .Release.Name }}-rabbitmq
     spec:
+      imagePullSecrets:
+        - name: regcred
+      {{- if .Values.appNodeSelector }}
       nodeSelector:
-          appNodes: "true"
-      serviceAccountName: {{ .Release.Name }}-rabbitmq
+        {{- toYaml .Values.appNodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations.appNodeTolerations }}
+      tolerations:
+        {{- toYaml .Values.tolerations.appNodeTolerations | nindent 8 }}
+      {{- end }}
       initContainers:
       - name: config
-        image: busybox
+        image: "{{ tpl .Values.busybox.image.imageUrl . }}:{{ .Values.busybox.image.imageTag }}"
+        imagePullPolicy: IfNotPresent
         command: ['/bin/sh', '-c', 'cp /tmp/config/rabbitmq.conf /config/rabbitmq.conf && ls -l /config/ && cp /tmp/config/enabled_plugins /etc/rabbitmq/enabled_plugins']
         volumeMounts:
         - name: config
@@ -110,12 +97,24 @@ spec:
           mountPath: /etc/rabbitmq/
       containers:
       - name: rabbitmq
-        image: rabbitmq:3.12-management
+        image: "{{ tpl .Values.rabbitmq.image.imageUrl . }}:{{ .Values.rabbitmq.image.imageTag }}"
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 15672
           name: discovery
+        {{- if and .Values.certmanager.enabled .Values.rabbitmq.tls.enabled }}
+        - containerPort: 5671
+          name: amqp-tls
+        {{- else }}
         - containerPort: 5672
           name: amqp
+        {{- end }}
+        resources:
+          requests:
+            {{- with .Values.rabbitmq.resources }}
+            memory: {{ .memory }}
+            cpu: {{ .cpu }}
+            {{- end }}
         env:
         - name: RABBIT_POD_NAME
           valueFrom:
@@ -143,6 +142,11 @@ spec:
               name: qualytics-creds
               key: rabbitmq_password
         volumeMounts:
+        {{- if and .Values.certmanager.enabled .Values.rabbitmq.tls.enabled }}
+        - name: rabbitmq-tls
+          mountPath: /etc/rabbitmq/tls/
+          readOnly: true
+        {{- end }}
         - name: rabbitmq-data-pvc
           mountPath: /var/lib/rabbitmq
           readOnly: false
@@ -151,6 +155,11 @@ spec:
         - name: plugins-file
           mountPath: /etc/rabbitmq/
       volumes:
+      {{- if and .Values.certmanager.enabled .Values.rabbitmq.tls.enabled }}
+      - name: rabbitmq-tls
+        secret:
+          secretName: rabbitmq-tls
+      {{- end }}
       - name: rabbitmq-data-pvc
         persistentVolumeClaim:
           claimName: rabbitmq-data-claim
@@ -163,6 +172,21 @@ spec:
           name: {{ .Release.Name }}-rabbitmq-config
           defaultMode: 0755
 
+{{- if and .Values.certmanager.enabled .Values.rabbitmq.tls.enabled }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: rabbitmq-cert
+spec:
+  secretName: rabbitmq-tls
+  dnsNames:
+  - {{ tpl .Values.global.dnsRecord . | quote }}
+  issuerRef:
+    name: letsencrypt
+    kind: ClusterIssuer
+{{- end }}
+
 ---
 apiVersion: v1
 kind: Service
@@ -171,7 +195,11 @@ metadata:
   labels:
     service: {{ .Release.Name }}-rabbitmq-service
 spec:
+{{- if and .Values.rabbitmq.enableInbound .Values.rabbitmq.tls.enabled .Values.certmanager.enabled }}
+  type: NodePort
+{{- else }}
   clusterIP: None
+{{- end }}
   ports:
   - port: 15672
     targetPort: 15672
@@ -179,5 +207,14 @@ spec:
   - port: 5672
     targetPort: 5672
     name: amqp
+  {{- if and .Values.certmanager.enabled .Values.rabbitmq.tls.enabled }}
+  - port: 5671
+  {{- if .Values.rabbitmq.enableInbound }}
+    nodePort: 30671
+  {{- else }}
+    targetPort: 5671
+  {{- end }}
+    name: amqp-tls
+  {{- end }}
   selector:
     app: {{ .Release.Name }}-rabbitmq

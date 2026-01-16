@@ -33,5 +33,11 @@ Session.vim
 
 # Chart dependencies
 **/charts/*.tgz
+Chart.lock
 
 .history
+
+**.code/*
+**.claude/*
+
+values-local.yaml*

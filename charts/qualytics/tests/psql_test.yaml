@@ -1,0 +1,80 @@
+suite: test psql deployment
+templates:
+  - psql.yaml
+tests:
+  - it: should not render psql when postgres is disabled
+    set:
+      postgres.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should render psql deployment when postgres is enabled
+    set:
+      postgres.enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+        documentIndex: 0
+
+  - it: should create psql deployment with correct configuration
+    set:
+      postgres.enabled: true
+    asserts:
+      - equal:
+          path: metadata.name
+          value: "RELEASE-NAME-psql"
+        documentIndex: 0
+      - equal:
+          path: spec.replicas
+          value: 0
+        documentIndex: 0
+
+  - it: should use correct image
+    set:
+      postgres.enabled: true
+      postgres.image.imageUrl: "custom/postgres"
+      postgres.image.imageTag: "v1.0.0"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: "custom/postgres:v1.0.0"
+        documentIndex: 0
+
+  - it: should set correct container command
+    set:
+      postgres.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].command[0]
+          value: "/bin/bash"
+        documentIndex: 0
+      - equal:
+          path: spec.template.spec.containers[0].command[1]
+          value: "-c"
+        documentIndex: 0
+
+  - it: should mount backup volume
+    set:
+      postgres.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: "postgres-snapshots-pvc"
+            persistentVolumeClaim:
+              claimName: "postgres-snapshots-claim"
+        documentIndex: 0
+
+  - it: should have correct node selector when configured
+    set:
+      postgres.enabled: true
+      appNodeSelector:
+        appNodes: "true"
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeSelector.appNodes
+          value: "true"
+        documentIndex: 0

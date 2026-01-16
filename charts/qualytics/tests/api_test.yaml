@@ -1,0 +1,219 @@
+suite: test API/controlplane configuration
+templates:
+  - api.yaml
+tests:
+  # Basic API deployment
+  - it: should create API deployment with correct name
+    asserts:
+      - isKind:
+          of: Deployment
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-api
+        documentIndex: 0
+
+  - it: should create API service
+    asserts:
+      - isKind:
+          of: Service
+        documentIndex: 1
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-api-service
+        documentIndex: 1
+
+  # Replica configuration
+  - it: should configure API replicas
+    set:
+      controlplane.replicas: 3
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 3
+        documentIndex: 0
+
+  # Node selector configuration
+  - it: should configure node selector for API
+    set:
+      appNodeSelector:
+        nodeType: "app"
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeSelector.nodeType
+          value: "app"
+        documentIndex: 0
+
+  # Resource configuration
+  - it: should configure API resources
+    set:
+      controlplane.resources.memory: "2Gi"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: "2Gi"
+        documentIndex: 0
+
+  # Image configuration
+  - it: should configure controlplane image
+    set:
+      global.imageUrls.controlplaneImageUrl: "custom/controlplane"
+      controlplaneImage.image.controlplaneImageTag: "v1.0.0"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: "custom/controlplane:v1.0.0"
+        documentIndex: 0
+
+  # Environment variables
+  - it: should configure global DNS record in API
+    set:
+      global.dnsRecord: "test.qualytics.io"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CORS_ORIGINS
+            value: "test.qualytics.io"
+        documentIndex: 0
+
+  - it: should configure global auth type in API
+    set:
+      global.authType: "OIDC"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: API_AUTH
+            value: "OIDC"
+        documentIndex: 0
+
+  # Platform configuration
+  - it: should configure platform environment variable
+    set:
+      global.platform: "gcp"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: APP_CLOUD_PLATFORM
+            value: "gcp"
+        documentIndex: 0
+
+  # SMTP configuration
+  - it: should configure SMTP environment variables when enabled
+    set:
+      controlplane.smtp.enabled: true
+      controlplane.smtp.server: "smtp.example.com"
+      controlplane.smtp.port: "587"
+      controlplane.smtp.sender: "test@example.com"
+      secrets.smtp.smtp_sender_user: "smtp-user"
+      secrets.smtp.smtp_sender_password: "smtp-pass"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMTP_SERVER
+            value: "smtp.example.com"
+        documentIndex: 0
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMTP_PORT
+            value: "587"
+        documentIndex: 0
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMTP_SENDER_EMAIL
+            value: "test@example.com"
+        documentIndex: 0
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMTP_SENDER_USER
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: smtp_sender_user
+        documentIndex: 0
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMTP_SENDER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: smtp_sender_password
+        documentIndex: 0
+
+  - it: should not configure SMTP environment variables when disabled
+    set:
+      controlplane.smtp.enabled: false
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMTP_SERVER
+        documentIndex: 0
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMTP_PORT
+        documentIndex: 0
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMTP_SENDER_EMAIL
+        documentIndex: 0
+
+  - it: should set MCP_ENABLED to false by default
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MCP_ENABLED
+            value: "false"
+        documentIndex: 0
+
+  - it: should set MCP_ENABLED to true when enabled
+    set:
+      controlplane.mcp.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MCP_ENABLED
+            value: "true"
+        documentIndex: 0
+
+  - it: should set MCP_ENABLED to false when explicitly disabled
+    set:
+      controlplane.mcp.enabled: false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MCP_ENABLED
+            value: "false"
+        documentIndex: 0
+
+  - it: should set APP_DEPLOYMENT_MODE to kubernetes by default
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: APP_DEPLOYMENT_MODE
+            value: "kubernetes"
+        documentIndex: 0
+
+  - it: should set APP_DEPLOYMENT_MODE to databricks when configured
+    set:
+      global.deploymentMode: "databricks"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: APP_DEPLOYMENT_MODE
+            value: "databricks"
+        documentIndex: 0

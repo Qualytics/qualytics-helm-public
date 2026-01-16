@@ -1,0 +1,183 @@
+suite: test ingress resources
+templates:
+  - ingress.yaml
+tests:
+  - it: should not render ingress when disabled
+    set:
+      ingress.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should render ingress resources when enabled
+    set:
+      ingress.enabled: true
+      global.dnsRecord: "test.qualytics.io"
+    asserts:
+      - hasDocuments:
+          count: 3
+      - isKind:
+          of: Ingress
+        documentIndex: 0
+      - isKind:
+          of: Ingress
+        documentIndex: 1
+      - isKind:
+          of: Ingress
+        documentIndex: 2
+
+  - it: should create API streaming ingress with correct configuration
+    set:
+      ingress.enabled: true
+      global.dnsRecord: "test.qualytics.io"
+    asserts:
+      - equal:
+          path: metadata.name
+          value: "RELEASE-NAME-api-streaming-ingress"
+        documentIndex: 0
+      - equal:
+          path: spec.rules[0].host
+          value: "test.qualytics.io"
+        documentIndex: 0
+      - equal:
+          path: spec.rules[0].http.paths[0].path
+          value: "/api/anomalies/[0-9]+/source-record/download(.*)"
+        documentIndex: 0
+      # Verify higher priority for streaming
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/priority"]
+          value: "100"
+        documentIndex: 0
+      # Verify buffering is disabled
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/proxy-buffering"]
+          value: "off"
+        documentIndex: 0
+      # Verify OWASP rules are disabled for streaming
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/enable-owasp-core-rules"]
+          value: "false"
+        documentIndex: 0
+
+  - it: should create API regular ingress with correct configuration
+    set:
+      ingress.enabled: true
+      global.dnsRecord: "test.qualytics.io"
+    asserts:
+      - equal:
+          path: metadata.name
+          value: "RELEASE-NAME-api-ingress"
+        documentIndex: 1
+      - equal:
+          path: spec.rules[0].host
+          value: "test.qualytics.io"
+        documentIndex: 1
+      - equal:
+          path: spec.rules[0].http.paths[0].path
+          value: "/api/?(.*)"
+        documentIndex: 1
+      # Verify lower priority for regular API
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/priority"]
+          value: "10"
+        documentIndex: 1
+      # Verify buffering is enabled
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/proxy-buffering"]
+          value: "on"
+        documentIndex: 1
+      # Verify OWASP rules are enabled for regular API
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/enable-owasp-core-rules"]
+          value: "true"
+        documentIndex: 1
+
+  - it: should create frontend ingress with correct configuration
+    set:
+      ingress.enabled: true
+      global.dnsRecord: "test.qualytics.io"
+    asserts:
+      - equal:
+          path: metadata.name
+          value: "RELEASE-NAME-frontend-ingress"
+        documentIndex: 2
+      - equal:
+          path: spec.rules[0].host
+          value: "test.qualytics.io"
+        documentIndex: 2
+      - equal:
+          path: spec.rules[0].http.paths[0].path
+          value: "/?(.*)"
+        documentIndex: 2
+      # Verify OWASP rules are enabled for frontend
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/enable-owasp-core-rules"]
+          value: "true"
+        documentIndex: 2
+      # Verify rate limiting is disabled for frontend (to allow parallel asset loading)
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/limit-rps"]
+          value: "0"
+        documentIndex: 2
+
+  - it: should configure TLS when cert-manager is enabled
+    set:
+      ingress.enabled: true
+      global.dnsRecord: "test.qualytics.io"
+      global.certManager.enabled: true
+    asserts:
+      # Streaming API ingress TLS
+      - contains:
+          path: spec.tls
+          content:
+            hosts:
+              - "test.qualytics.io"
+            secretName: "api-tls-cert"
+        documentIndex: 0
+      # Regular API ingress TLS
+      - contains:
+          path: spec.tls
+          content:
+            hosts:
+              - "test.qualytics.io"
+            secretName: "api-tls-cert"
+        documentIndex: 1
+      # Frontend ingress TLS
+      - contains:
+          path: spec.tls
+          content:
+            hosts:
+              - "test.qualytics.io"
+            secretName: "frontend-tls-cert"
+        documentIndex: 2
+
+  - it: should configure CORS when enabled
+    set:
+      ingress.enabled: true
+      ingress.cors: true
+      global.dnsRecord: "test.qualytics.io"
+    asserts:
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/enable-cors"]
+          value: "true"
+        documentIndex: 0
+
+  - it: should configure rate limiting when enabled
+    set:
+      ingress.enabled: true
+      global.dnsRecord: "test.qualytics.io"
+    asserts:
+      - exists:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/limit-rps"]
+        documentIndex: 0
+
+  - it: should configure ModSecurity when enabled
+    set:
+      ingress.enabled: true
+      ingress.modsecurity.enabled: true
+      global.dnsRecord: "test.qualytics.io"
+    asserts:
+      - equal:
+          path: metadata.annotations["nginx.ingress.kubernetes.io/enable-modsecurity"]
+          value: "true"
+        documentIndex: 0

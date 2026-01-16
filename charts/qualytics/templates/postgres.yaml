@@ -4,15 +4,22 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-data-claim
+  {{- if ( eq .Values.global.platform "aws" ) }}
+  annotations:
+    "ebs.csi.aws.com/iops": "4000"
+    "ebs.csi.aws.com/throughput": "200"
+  {{- end }}
 spec:
   accessModes:
     - ReadWriteOnce
   volumeMode: Filesystem
-  {{- if ( eq .Values.global.platform "aws" ) }}
+  {{- if and ( eq .Values.storageClass.create false ) (ne ( .Values.storageClass.name ) "") }}
+  storageClassName: {{ .Values.storageClass.name }}
+  {{- else if and ( eq .Values.storageClass.create true ) ( eq .Values.global.platform "aws" ) }}
   storageClassName: aws
-  {{- else if ( eq .Values.global.platform "gcp" ) }}
+  {{- else if and ( eq .Values.storageClass.create true ) ( eq .Values.global.platform "gcp" ) }}
   storageClassName: gcp-fast
-  {{- else if ( eq .Values.global.platform "azure" ) }}
+  {{- else if and ( eq .Values.storageClass.create true ) ( eq .Values.global.platform "azure" ) }}
   storageClassName: azure-fast
   {{- end }}
   resources:
@@ -36,6 +43,21 @@ spec:
       name: postgres
       targetPort: 5432
 
+{{- if and .Values.certmanager.enabled .Values.postgres.tls.enabled }}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: postgres-cert
+spec:
+  secretName: postgres-tls
+  dnsNames:
+  - {{ tpl .Values.global.dnsRecord . | quote }}
+  issuerRef:
+    name: letsencrypt
+    kind: ClusterIssuer
+{{- end }}
+
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -54,37 +76,110 @@ spec:
       labels:
         app: {{ .Release.Name }}-postgres
     spec:
+      securityContext:
+        fsGroup: 999
       terminationGracePeriodSeconds: 10
+      imagePullSecrets:
+        - name: regcred
+      {{- if .Values.appNodeSelector }}
       nodeSelector:
-          appNodes: "true"
+        {{- toYaml .Values.appNodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations.appNodeTolerations }}
+      tolerations:
+        {{- toYaml .Values.tolerations.appNodeTolerations | nindent 8 }}
+      {{- end }}
       containers:
       - name: postgres
         args:
+          # Connection settings
           - -c
-          - max_connections=10000
+          - max_connections=1250
           - -c
-          - shared_buffers=4GB
+          - max_prepared_transactions=0  # Disable if not using 2PC
           - -c
-          - maintenance_work_mem=1GB
+          - max_locks_per_transaction=256  # Higher for concurrent transactions
           - -c
-          - work_mem=512MB
+          - max_pred_locks_per_transaction=128  # Higher for serializable transactions
+          # Memory settings
           - -c
-          - log_statement=all
+          - shared_buffers={{ div (mul (int (trimSuffix "Gi" .Values.postgres.resources.memory)) 1024) 100 | mul 40 }}MB  # 40% of total memory
+          - -c
+          - effective_cache_size={{ div (mul (int (trimSuffix "Gi" .Values.postgres.resources.memory)) 1024) 100 | mul 75 }}MB  # 75% of total memory
+          - -c
+          - work_mem={{ div (mul (int (trimSuffix "Gi" .Values.postgres.resources.memory)) 1024) 100 | mul 2 }}MB  # 2% of total memory
+          - -c
+          - maintenance_work_mem={{ div (mul (int (trimSuffix "Gi" .Values.postgres.resources.memory)) 1024) 100 | mul 10 }}MB  # 10% of total memory
+          # SSD-optimized I/O settings
+          - -c
+          - effective_io_concurrency=1000
+          - -c
+          - maintenance_io_concurrency=1000
+          - -c
+          - random_page_cost=0.1
+          - -c
+          - seq_page_cost=0.1
+          # WAL settings optimized for SSDs
+          - -c
+          - wal_writer_delay=20ms
+          - -c
+          - wal_buffers=64MB
+          - -c
+          - max_wal_size=4GB
+          - -c
+          - min_wal_size=1GB
+          - -c
+          - wal_compression=on
+          - -c
+          - wal_init_zero=off
+          - -c
+          - wal_recycle=off
+          # Checkpoint settings
+          - -c
+          - checkpoint_timeout=15min
+          - -c
+          - checkpoint_completion_target=0.9
+          # Autovacuum settings
+          - -c
+          - autovacuum_vacuum_cost_limit=2000
+          - -c
+          - autovacuum_vacuum_cost_delay=5ms
+          # Query planning
+          - -c
+          - default_statistics_target=100
+          - -c
+          - jit=off
+          # Logging optimizations for high connections
           - -c
           - log_destination=stderr
-        image: {{ printf "postgres:%s" .Values.postgres.image.version }}
+          - -c
+          - log_connections=off
+          - -c
+          - log_disconnections=off
+          {{- if and .Values.certmanager.enabled .Values.postgres.tls.enabled }}
+          - -c
+          - ssl=on
+          - -c
+          - ssl_cert_file=/etc/postgres/tls/tls.crt
+          - -c
+          - ssl_key_file=/etc/postgres/tls/tls.key
+          {{- end }}
+        image: "{{ tpl .Values.postgres.image.imageUrl . }}:{{ .Values.postgres.image.imageTag }}"
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5432
           name: postgres
         env:
+          - name: POSTGRES_USER
+            value: {{ .Values.secrets.postgres.username | quote }}
           - name: POSTGRES_PASSWORD
-            value: postgres
+            value: {{ .Values.secrets.postgres.password | quote }}
           - name: POSTGRES_DB
-            value: surveillance_hub
+            value: {{ .Values.secrets.postgres.database | quote }}
           - name: PGDATA
             value: /mnt/data/pgdata
         resources:
-          limits:
+          requests:
             {{- with .Values.postgres.resources }}
             memory: {{ .memory }}
             cpu: {{ .cpu }}
@@ -94,6 +189,11 @@ spec:
           mountPath: /mnt/data
         - name: pgshm
           mountPath: /dev/shm
+        {{- if and .Values.certmanager.enabled .Values.postgres.tls.enabled }}
+        - name: postgres-tls
+          mountPath: /etc/postgres/tls
+          readOnly: true
+        {{- end }}
       volumes:
         - name: postgres-data-pvc
           persistentVolumeClaim:
@@ -102,4 +202,154 @@ spec:
           emptyDir:
             medium: Memory
             sizeLimit: "4Gi"
+        {{- if and .Values.certmanager.enabled .Values.postgres.tls.enabled }}
+        - name: postgres-tls
+          secret:
+            secretName: postgres-tls
+            defaultMode: 384
+        {{- end }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-snapshots-claim
+spec:
+  accessModes:
+    - ReadWriteOnce
+  volumeMode: Filesystem
+  {{- if and ( eq .Values.storageClass.create false ) (ne ( .Values.storageClass.name ) "") }}
+  storageClassName: {{ .Values.storageClass.name }}
+  {{- else if and ( eq .Values.storageClass.create true ) ( eq .Values.global.platform "aws" ) }}
+  storageClassName: aws
+  {{- else if and ( eq .Values.storageClass.create true ) ( eq .Values.global.platform "gcp" ) }}
+  storageClassName: gcp-fast
+  {{- else if and ( eq .Values.storageClass.create true ) ( eq .Values.global.platform "azure" ) }}
+  storageClassName: azure-fast
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.postgres.pvc.backupStorageSize }}
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Release.Name }}-postgres-snapshotter
+  labels:
+    role: backups
+spec:
+  schedule: "0 0 * * *"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          imagePullSecrets:
+            - name: regcred
+          {{- if .Values.appNodeSelector }}
+          nodeSelector:
+            {{- toYaml .Values.appNodeSelector | nindent 12 }}
+          {{- end }}
+          {{- if .Values.tolerations.appNodeTolerations }}
+          tolerations:
+            {{- toYaml .Values.tolerations.appNodeTolerations | nindent 12 }}
+          {{- end }}
+          containers:
+          - name: snapshotter
+            env:
+            - name: POSTGRES_CONNECTION_URL
+              valueFrom:
+                secretKeyRef:
+                  name: qualytics-creds
+                  key: connection_url
+            - name: DATABASE_URL
+              value: postgresql://$(POSTGRES_CONNECTION_URL)
+            image: "{{ tpl .Values.postgres.image.imageUrl . }}:{{ .Values.postgres.image.imageTag }}"
+            imagePullPolicy: IfNotPresent
+            command:
+            - "/bin/sh"
+            - "-c"
+            - |
+              TIMESTAMP=$( date +%Y-%-m-%d.%H%M )
+              ARCHIVE="pg_dump.${TIMESTAMP}.sql"
+              pg_dump $DATABASE_URL > ./${ARCHIVE}
+              gzip -9 ./${ARCHIVE}
+              mv ${ARCHIVE}.gz /mnt/data/postgres/${ARCHIVE}.gz
+              ls /mnt/data/postgres/
+              # Remove backup files older than one month
+              find /mnt/data/postgres -name "pg_dump.*.sql.gz" -type f -mtime +30 -exec rm {} \;
+            volumeMounts:
+            - name: postgres-snapshots-volume
+              mountPath: /mnt/data/postgres
+          volumes:
+            - name: postgres-snapshots-volume
+              persistentVolumeClaim:
+                claimName: postgres-snapshots-claim
+          restartPolicy: OnFailure
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Release.Name }}-postgres-maintenance
+  annotations:
+    argocd.argoproj.io/compare-options: IgnoreExtraneous
+  labels:
+    role: maintenance
+spec:
+  schedule: "0 2 * * *"  # Runs at 2 AM every day
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          imagePullSecrets:
+            - name: regcred
+          {{- if .Values.appNodeSelector }}
+          nodeSelector:
+            {{- toYaml .Values.appNodeSelector | nindent 12 }}
+          {{- end }}
+          {{- if .Values.tolerations.appNodeTolerations }}
+          tolerations:
+            {{- toYaml .Values.tolerations.appNodeTolerations | nindent 12 }}
+          {{- end }}
+          containers:
+          - name: db-maintenance
+            env:
+            - name: POSTGRES_CONNECTION_URL
+              valueFrom:
+                secretKeyRef:
+                  name: qualytics-creds
+                  key: connection_url
+            - name: DATABASE_URL
+              value: postgresql://$(POSTGRES_CONNECTION_URL)
+            image: "{{ tpl .Values.postgres.image.imageUrl . }}:{{ .Values.postgres.image.imageTag }}"
+            imagePullPolicy: IfNotPresent
+            command:
+            - "/bin/sh"
+            - "-c"
+            - |
+              printf "Running VACUUM and ANALYZE on database\n"
+              psql $DATABASE_URL -c "VACUUM VERBOSE;"
+              psql $DATABASE_URL -c "ANALYZE;"
+
+              # Add REINDEX for weekly maintenance on Sundays
+              if [ "$(date +%u)" -eq 7 ]; then
+                printf "Running REINDEX on tables CONCURRENTLY\n"
+                TABLES=$(psql $DATABASE_URL -t -c "
+                  SELECT '\"' || schemaname || '\".\"' || tablename || '\"'
+                  FROM pg_tables
+                  WHERE schemaname = 'public';")
+                for table in $TABLES; do
+                  printf "Reindexing table: $table\n"
+                  psql $DATABASE_URL -c "REINDEX TABLE CONCURRENTLY $table;"
+                done
+              fi
+
+              printf "Database maintenance completed\n"
+          restartPolicy: OnFailure
+
 {{- end }}

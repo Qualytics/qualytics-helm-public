@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: {{ .Release.Name }}-api
 spec:
-  replicas: {{ .Values.hub.replicas }}
+  replicas: {{ .Values.controlplane.replicas }}
   strategy:
     type: Recreate
   selector:
@@ -16,39 +16,52 @@ spec:
     spec:
       imagePullSecrets:
         - name: regcred
+      {{- if .Values.appNodeSelector }}
       nodeSelector:
-        appNodes: "true"
+        {{- toYaml .Values.appNodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations.appNodeTolerations }}
+      tolerations:
+        {{- toYaml .Values.tolerations.appNodeTolerations | nindent 8 }}
+      {{- end }}
       containers:
       - name: api
-        image: "{{ tpl .Values.global.imageUrls.hubImageUrl . }}:{{ .Values.hubImage.image.hubImageTag | toString }}"
+        image: "{{ tpl .Values.global.imageUrls.controlplaneImageUrl . }}:{{ .Values.controlplaneImage.image.controlplaneImageTag }}"
         imagePullPolicy: IfNotPresent
         command: ["/bin/bash","-c"]
         args: ["python /app/hub_api.py"]
         resources:
-          limits:
-            {{- with .Values.hub.resources }}
+          requests:
+            {{- with .Values.controlplane.resources }}
             memory: {{ .memory }}
             cpu: {{ .cpu }}
             {{- end }}
         ports:
-          - containerPort: {{ .Values.hub.ingress.servicePort }}
+          - containerPort: {{ .Values.controlplane.ingress.servicePort }}
         env:
           - name: APP_AUTO_RELOAD
             value: "False"
+          - name: APP_CLOUD_PLATFORM
+            value: {{ .Values.global.platform | quote }}
+          - name: APP_DEPLOYMENT_SIZE
+            value: {{ include "qualytics.global.size" . | quote }}
           - name: CORS_ORIGINS
             value: {{ tpl .Values.global.dnsRecord . | quote }}
-          {{- if ( eq .Values.postgres.enabled true ) }}
-          - name: POSTGRES_CONNECTION_URL
-            value: "postgres:postgres@{{ .Release.Name }}-postgres.{{ .Release.Namespace }}.svc.cluster.local:5432/surveillance_hub"
-          {{- else }}
           - name: POSTGRES_CONNECTION_URL
             valueFrom:
               secretKeyRef:
                 name: qualytics-creds
                 key: connection_url
-          {{- end }}
           - name: DATABASE_URL
             value: "postgresql+psycopg2://$(POSTGRES_CONNECTION_URL)"
+          {{- if ( eq .Values.controlplane.smtp.enabled true ) }}
+          - name: SMTP_SERVER
+            value: {{ .Values.controlplane.smtp.server | quote }}
+          - name: SMTP_PORT
+            value: {{ .Values.controlplane.smtp.port | quote }}
+          - name: SMTP_SENDER_EMAIL
+            value: {{ .Values.controlplane.smtp.sender | quote }}
+          {{- if and .Values.secrets.smtp.smtp_sender_user .Values.secrets.smtp.smtp_sender_password }}
           - name: SMTP_SENDER_USER
             valueFrom:
               secretKeyRef:
@@ -59,27 +72,103 @@ spec:
               secretKeyRef:
                 name: qualytics-creds
                 key: smtp_sender_password
+         {{- end }}
+         {{- end }}
           - name: API_ROOT_PATH
             value: /api
           - name: API_ROOT_URL
             value: {{ printf "http://%s-api-service:8000$(API_ROOT_PATH)" .Release.Name }}
-          - name: AUTH0_DOMAIN
-            value: {{ .Values.secrets.auth0.auth0_domain | quote }}
           - name: SECRETS_PASSPHRASE
             valueFrom:
               secretKeyRef:
                 name: qualytics-creds
                 key: secrets_passphrase
-          - name: AUTH0_CLIENT_ID
+          - name: JWT_SIGNING_SECRET
             valueFrom:
               secretKeyRef:
                 name: qualytics-creds
-                key: auth0_client_id
-          - name: AUTH0_CLIENT_SECRET
+                key: jwt_signing_secret
+          {{- if ( eq .Values.global.authType "OIDC" ) }}
+          - name: API_AUTH
+            value: OIDC
+          - name: OIDC_REDIRECT_URL
+            value: {{ printf "https://%s/callback" .Values.global.dnsRecord }}
+          - name: OIDC_SCOPES
             valueFrom:
               secretKeyRef:
                 name: qualytics-creds
-                key: auth0_client_secret
+                key: oidc_scopes
+          - name: OIDC_AUTHORIZATION_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_authorization_endpoint
+          - name: OIDC_TOKEN_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_token_endpoint
+          - name: OIDC_USERINFO_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_userinfo_endpoint
+          - name: OIDC_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_client_id
+          - name: OIDC_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_client_secret
+          - name: OIDC_USER_ID_KEY
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_user_id_key
+          - name: OIDC_USER_EMAIL_KEY
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_user_email_key
+          - name: OIDC_USER_NAME_KEY
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_user_name_key
+          - name: OIDC_USER_FNAME_KEY
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_user_fname_key
+          - name: OIDC_USER_LNAME_KEY
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_user_lname_key
+          - name: OIDC_USER_PICTURE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_user_picture_key
+          - name: OIDC_USER_PROVIDER_KEY
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: oidc_user_provider_key
+          - name: OIDC_ALLOW_INSECURE_HTTP
+            value: {{ .Values.secrets.oidc.oidc_allow_insecure_transport | quote }}
+          {{- if .Values.secrets.oidc.oidc_signer_pem_url }}
+          - name: OIDC_SIGNER_PEM_URL
+            value: {{ .Values.secrets.oidc.oidc_signer_pem_url | quote }}
+          {{- end }}
+          {{- else }}
+          - name: API_AUTH
+            value: AUTH0
+          - name: AUTH0_DOMAIN
+            value: {{ .Values.secrets.auth0.auth0_domain | quote }}
           - name: AUTH0_AUDIENCE
             valueFrom:
               secretKeyRef:
@@ -90,20 +179,15 @@ spec:
               secretKeyRef:
                 name: qualytics-creds
                 key: auth0_organization
-        {{- if ( eq .Values.hubUserKeys.enabled true ) }}
-          - name: AUTH0_USER_CLIENT_ID
-            valueFrom:
-              secretKeyRef:
-                name: qualytics-creds
-                key: auth0_user_client_id
-          - name: AUTH0_USER_CLIENT_SECRET
-            valueFrom:
-              secretKeyRef:
-                name: qualytics-creds
-                key: auth0_user_client_secret
-         {{- end }}
+          {{- end }}
           - name: RABBIT_MQ_HOST
             value: "{{ .Release.Name }}-rabbitmq"
+          {{- if eq .Values.rabbitmq.tls.enabled false }}
+          - name: RABBIT_MQ_PORT
+            value: "5672"
+          - name: RABBIT_MQ_USE_TLS
+            value: "false"
+           {{- end }} 
           - name: RABBIT_MQ_USER
             value: "user"
           - name: RABBIT_MQ_PASSWORD
@@ -111,6 +195,21 @@ spec:
               secretKeyRef:
                 name: qualytics-creds
                 key: rabbitmq_password
+          - name: VERIFY_CERTIFICATE_SIGNERS
+            value: {{ .Values.controlplane.egress.verifyTLSCertificates | quote }}
+        {{- if and (.Values.controlplane.auth.migrateIdpByEmail) (ne .Values.controlplane.auth.migrateIdpByEmail "") }}
+          - name: MIGRATE_IDP_BY_EMAIL
+            value: {{ .Values.controlplane.auth.migrateIdpByEmail | quote }}
+        {{- end }}
+        {{- if and (.Values.controlplane.auth.scimUsernamePrefix) (ne .Values.controlplane.auth.scimUsernamePrefix "") }}
+          - name: SCIM_USERNAME_PREFIX
+            value: {{ .Values.controlplane.auth.scimUsernamePrefix | quote }}
+        {{- end }}
+          - name: MCP_ENABLED
+            value: {{ .Values.controlplane.mcp.enabled | quote }}
+          - name: APP_DEPLOYMENT_MODE
+            value: {{ .Values.global.deploymentMode | quote }}
+
 #--------------------------------------------------------------------------------
 # Environments that require a proxy (Http, Socks, etc..) for egress
 #--------------------------------------------------------------------------------
@@ -135,43 +234,9 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - port: {{ .Values.hub.ingress.servicePort }}
-      targetPort: {{ .Values.hub.ingress.servicePort }}
+    - port: {{ .Values.controlplane.ingress.servicePort }}
+      targetPort: {{ .Values.controlplane.ingress.servicePort }}
       protocol: TCP
       name: http
   selector:
     app: {{ .Release.Name }}-api
-
-{{- if ( eq .Values.ingress.enabled true ) }}
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: {{ .Release.Name }}-api-ingress
-  annotations:
-    helm.sh/hook: post-install,post-upgrade
-    helm.sh/hook-weight: "50"
-    cert-manager.io/cluster-issuer: 'letsencrypt'
-    nginx.ingress.kubernetes.io/proxy-redirect-from: 'http'
-    nginx.ingress.kubernetes.io/proxy-redirect-to: 'https'
-    nginx.ingress.kubernetes.io/use-regex: 'true'
-    nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
-    nginx.ingress.kubernetes.io/enable-cors: 'true'
-spec:
-  ingressClassName: nginx
-  tls:
-    - hosts:
-        - {{ tpl .Values.global.dnsRecord . | quote }}
-      secretName: api-tls-cert
-  rules:
-    - host: {{ tpl .Values.global.dnsRecord . | quote }}
-      http:
-        paths:
-          - path: {{ .Values.hub.ingress.path | quote }}
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ .Release.Name }}-api-service
-                port:
-                  number: {{ .Values.hub.ingress.servicePort }}
-{{- end }}

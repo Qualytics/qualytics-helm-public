@@ -1,0 +1,290 @@
+suite: test CMD deployment
+templates:
+  - cmd.yaml
+tests:
+  # Basic CMD deployment
+  - it: should render CMD deployment
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+        documentIndex: 0
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-cmd
+        documentIndex: 0
+
+  - it: should use recreate strategy
+    asserts:
+      - equal:
+          path: spec.strategy.type
+          value: Recreate
+        documentIndex: 0
+
+  - it: should configure CMD deployment with correct replicas
+    set:
+      cmd.replicas: 1
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 1
+        documentIndex: 0
+
+  # Image configuration
+  - it: should use correct image configuration
+    set:
+      global.imageUrls.controlplaneImageUrl: "custom/controlplane"
+      controlplaneImage.image.controlplaneImageTag: "v1.0.0"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: "custom/controlplane:v1.0.0"
+        documentIndex: 0
+
+  - it: should set correct container name and command
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].name
+          value: "cmd"
+        documentIndex: 0
+      - equal:
+          path: spec.template.spec.containers[0].command[0]
+          value: "/bin/bash"
+        documentIndex: 0
+      - equal:
+          path: spec.template.spec.containers[0].args[0]
+          value: "python /app/hub_cmd.py"
+        documentIndex: 0
+
+  # Resource configuration
+  - it: should set resource requests
+    set:
+      controlplaneCmd.resources.memory: "2Gi"
+      controlplaneCmd.resources.cpu: "500m"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.memory
+          value: "2Gi"
+        documentIndex: 0
+      - equal:
+          path: spec.template.spec.containers[0].resources.requests.cpu
+          value: "500m"
+        documentIndex: 0
+
+  # Node selector configuration
+  - it: should configure node selector when set
+    set:
+      appNodeSelector:
+        nodeType: "app"
+    asserts:
+      - equal:
+          path: spec.template.spec.nodeSelector.nodeType
+          value: "app"
+        documentIndex: 0
+
+  # Tolerations configuration
+  - it: should configure tolerations when set
+    set:
+      tolerations.appNodeTolerations:
+        - key: "appNodes"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
+    asserts:
+      - contains:
+          path: spec.template.spec.tolerations
+          content:
+            key: "appNodes"
+            operator: "Equal"
+            value: "true"
+            effect: "NoSchedule"
+        documentIndex: 0
+
+  # Environment variables
+  - it: should configure global DNS record in CMD
+    set:
+      global.dnsRecord: "test.qualytics.io"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: CORS_ORIGINS
+            value: "test.qualytics.io"
+        documentIndex: 0
+
+  - it: should configure platform environment variable
+    set:
+      global.platform: "gcp"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: APP_CLOUD_PLATFORM
+            value: "gcp"
+        documentIndex: 0
+
+  - it: should configure RabbitMQ environment variables
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBIT_MQ_HOST
+            value: "RELEASE-NAME-rabbitmq"
+        documentIndex: 0
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: RABBIT_MQ_USER
+            value: "user"
+        documentIndex: 0
+
+  - it: should configure auth type as OIDC
+    set:
+      global.authType: "OIDC"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: API_AUTH
+            value: "OIDC"
+        documentIndex: 0
+
+  - it: should configure auth type as AUTH0 by default
+    set:
+      global.authType: "AUTH0"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: API_AUTH
+            value: "AUTH0"
+        documentIndex: 0
+
+  # SMTP configuration
+  - it: should configure SMTP environment variables when enabled
+    set:
+      controlplane.smtp.enabled: true
+      controlplane.smtp.server: "smtp.example.com"
+      controlplane.smtp.port: "587"
+      controlplane.smtp.sender: "test@example.com"
+      secrets.smtp.smtp_sender_user: "smtp-user"
+      secrets.smtp.smtp_sender_password: "smtp-pass"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMTP_SERVER
+            value: "smtp.example.com"
+        documentIndex: 0
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMTP_PORT
+            value: "587"
+        documentIndex: 0
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMTP_SENDER_EMAIL
+            value: "test@example.com"
+        documentIndex: 0
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMTP_SENDER_USER
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: smtp_sender_user
+        documentIndex: 0
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMTP_SENDER_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: qualytics-creds
+                key: smtp_sender_password
+        documentIndex: 0
+
+  - it: should not configure SMTP environment variables when disabled
+    set:
+      controlplane.smtp.enabled: false
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMTP_SERVER
+        documentIndex: 0
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMTP_PORT
+        documentIndex: 0
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: SMTP_SENDER_EMAIL
+        documentIndex: 0
+
+  # Image pull secrets
+  - it: should have image pull secrets
+    asserts:
+      - contains:
+          path: spec.template.spec.imagePullSecrets
+          content:
+            name: regcred
+        documentIndex: 0
+
+  # MCP configuration
+  - it: should set MCP_ENABLED to false by default
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MCP_ENABLED
+            value: "false"
+        documentIndex: 0
+
+  - it: should set MCP_ENABLED to true when enabled
+    set:
+      controlplane.mcp.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MCP_ENABLED
+            value: "true"
+        documentIndex: 0
+
+  - it: should set MCP_ENABLED to false when explicitly disabled
+    set:
+      controlplane.mcp.enabled: false
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: MCP_ENABLED
+            value: "false"
+        documentIndex: 0
+
+  - it: should set APP_DEPLOYMENT_MODE to kubernetes by default
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: APP_DEPLOYMENT_MODE
+            value: "kubernetes"
+        documentIndex: 0
+
+  - it: should set APP_DEPLOYMENT_MODE to databricks when configured
+    set:
+      global.deploymentMode: "databricks"
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: APP_DEPLOYMENT_MODE
+            value: "databricks"
+        documentIndex: 0

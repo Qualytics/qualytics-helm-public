@@ -16,14 +16,20 @@ spec:
     spec:
       imagePullSecrets:
         - name: regcred
+      {{- if .Values.appNodeSelector }}
       nodeSelector:
-        appNodes: "true"
+        {{- toYaml .Values.appNodeSelector | nindent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations.appNodeTolerations }}
+      tolerations:
+        {{- toYaml .Values.tolerations.appNodeTolerations | nindent 8 }}
+      {{- end }}
       containers:
       - name: cfa
         image: "{{ tpl .Values.global.imageUrls.frontendImageUrl . }}:{{ .Values.frontendImage.image.frontendImageTag }}"
         imagePullPolicy: IfNotPresent
         resources:
-          limits:
+          requests:
             {{- with .Values.frontend.resources }}
             memory: {{ .memory }}
             cpu: {{ .cpu }}
@@ -35,6 +41,12 @@ spec:
             value: {{ tpl .Values.global.dnsRecord . | quote }}
           - name: VITE_QUALYTICS_API_LOCATION
             value: "https://$(VITE_QUALYTICS_DNS)/api"
+          {{- if ( eq .Values.global.authType "OIDC" ) }}
+          - name: VITE_QUALYTICS_AUTH_PROVIDER
+            value: OIDC
+          {{- else }}
+          - name: VITE_QUALYTICS_AUTH_PROVIDER
+            value: AUTH0
           - name: VITE_QUALYTICS_AUTH0_LOGOUT_REDIRECT
             value: "https://$(VITE_QUALYTICS_DNS)"
           - name: VITE_QUALYTICS_AUTH0_DOMAIN
@@ -54,6 +66,7 @@ spec:
               secretKeyRef:
                 name: qualytics-creds
                 key: auth0_organization
+          {{- end }}
 
 ---
 apiVersion: v1
@@ -71,37 +84,3 @@ spec:
       name: http
   selector:
     app: {{ .Release.Name }}-frontend
-
-{{- if ( eq .Values.ingress.enabled true ) }}
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: {{ .Release.Name }}-frontend-ingress
-  annotations:
-    helm.sh/hook: post-install,post-upgrade
-    helm.sh/hook-weight: "50"
-    nginx.ingress.kubernetes.io/use-regex: 'true'
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
-    nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
-    nginx.ingress.kubernetes.io/proxy-redirect-from: 'http'
-    nginx.ingress.kubernetes.io/proxy-redirect-to: 'https'
-    cert-manager.io/cluster-issuer: "letsencrypt"
-spec:
-  ingressClassName: nginx
-  tls:
-    - hosts:
-        - {{ tpl .Values.global.dnsRecord . | quote }}
-      secretName: frontend-tls-cert
-  rules:
-    - host: {{ tpl .Values.global.dnsRecord . | quote }}
-      http:
-        paths:
-          - path: {{ .Values.frontend.ingress.path | quote }}
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ .Release.Name }}-frontend-service
-                port:
-                  number: {{ .Values.frontend.ingress.servicePort }}
-{{- end }}

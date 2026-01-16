@@ -1,0 +1,126 @@
+################################################################################
+# Qualytics AKS - Example Configuration
+#
+# Copy this file to terraform.tfvars and customize the values for your
+# deployment. Required values are marked with "REQUIRED".
+################################################################################
+
+#-------------------------------------------------------------------------------
+# General Configuration
+#-------------------------------------------------------------------------------
+
+# Azure subscription ID (REQUIRED)
+subscription_id = "your-subscription-id"
+
+# Azure region for the AKS cluster
+location = "eastus"
+
+# Name of the AKS cluster
+cluster_name = "qualytics"
+
+# Kubernetes version (1.30+ recommended)
+kubernetes_version = "1.31"
+
+# Default tags applied to all resources
+default_tags = {
+  Terraform   = "true"
+  Application = "qualytics"
+  Environment = "production"
+}
+
+#-------------------------------------------------------------------------------
+# Networking
+#-------------------------------------------------------------------------------
+
+# Virtual Network CIDR block - adjust if it conflicts with existing networks
+vnet_cidr = "10.0.0.0/16"
+
+# AKS subnet CIDR block (must be within vnet_cidr)
+aks_subnet_cidr = "10.0.0.0/20"
+
+# Kubernetes service CIDR (should not overlap with vnet_cidr)
+service_cidr = "10.1.0.0/16"
+
+# DNS service IP (must be within service_cidr)
+dns_service_ip = "10.1.0.10"
+
+# Authorized IP ranges for API server access (empty for unrestricted)
+# Example: ["203.0.113.0/24", "198.51.100.1/32"]
+api_server_authorized_ip_ranges = []
+
+#-------------------------------------------------------------------------------
+# Cluster Configuration
+#-------------------------------------------------------------------------------
+
+# AKS SKU tier (Free or Standard). Standard recommended for production SLA.
+sku_tier = "Standard"
+
+#-------------------------------------------------------------------------------
+# Application Nodes
+# For: API, Frontend, PostgreSQL, RabbitMQ, Spark Operator, Cert-Manager
+#-------------------------------------------------------------------------------
+
+# VM size - Standard_D8s_v5 (8 vCPUs, 32 GB) recommended
+app_node_vm_size = "Standard_D8s_v5"
+
+# Node counts
+app_node_min_count = 1
+app_node_max_count = 3
+
+# OS disk size in GB
+app_node_os_disk_size_gb = 128
+
+#-------------------------------------------------------------------------------
+# Spark Driver Nodes
+# For: Spark driver process
+#-------------------------------------------------------------------------------
+
+# VM size - Standard_E8s_v5 (8 vCPUs, 64 GB memory) recommended
+driver_node_vm_size = "Standard_E8s_v5"
+
+# Node counts
+driver_node_min_count = 0
+driver_node_max_count = 1
+
+# OS disk size in GB
+driver_node_os_disk_size_gb = 128
+
+#-------------------------------------------------------------------------------
+# Spark Executor Nodes
+# For: Spark executor processes (data processing)
+#-------------------------------------------------------------------------------
+
+# VM size - Standard_E8ds_v5 (8 vCPUs, 64 GB, 300 GB temp SSD) recommended
+# The 'ds' suffix indicates local temp SSD storage for optimal Spark performance
+executor_node_vm_size = "Standard_E8ds_v5"
+
+# Node counts - scales based on workload
+executor_node_min_count = 1
+executor_node_max_count = 12
+
+# OS disk size in GB
+executor_node_os_disk_size_gb = 128
+
+# Use Spot instances for cost savings (set to false for guaranteed capacity)
+executor_use_spot = true
+
+# Maximum price per hour for Spot instances (-1 = pay up to on-demand price)
+executor_spot_max_price = -1
+
+#-------------------------------------------------------------------------------
+# Node Configuration
+#-------------------------------------------------------------------------------
+
+# Enable taints to ensure workloads run on appropriate nodes
+enable_node_taints = true
+
+#-------------------------------------------------------------------------------
+# Optional Features
+#-------------------------------------------------------------------------------
+
+# Create the qualytics namespace
+create_qualytics_namespace = true
+
+# Docker registry token (REQUIRED - provided by Qualytics)
+# Uncomment and set this to automatically create the registry secret
+# docker_registry_token = "your-token-from-qualytics"

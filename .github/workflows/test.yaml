@@ -1,0 +1,186 @@
+name: Test Charts
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths: [ 'charts/**' ]
+  push:
+    branches: [ main ]
+    paths: [ 'charts/**' ]
+  workflow_call:
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.19.0
+
+      - name: Install Helm unittest plugin
+        run: helm plugin install https://github.com/helm-unittest/helm-unittest
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add spark-operator https://kubeflow.github.io/spark-operator
+          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+          helm repo add jetstack https://charts.jetstack.io
+          helm repo update
+
+      - name: Build dependencies
+        run: helm dependency build charts/qualytics
+
+      - name: Lint charts
+        run: helm lint charts/qualytics
+
+      - name: Run unit tests
+        run: helm unittest charts/qualytics
+
+      - name: Template validation tests for template.values.yaml configurations
+        run: |
+          echo "Testing template.values.yaml key configurations..."
+          
+          # Test global platform configurations
+          echo "  Testing AWS platform configuration..."
+          helm template test-release charts/qualytics \
+            --set global.platform=aws \
+            --set global.dnsRecord=test-aws.qualytics.io \
+            --set dataplane.numVolumes=2 > /dev/null
+            
+          echo "  Testing GCP platform configuration..."
+          helm template test-release charts/qualytics \
+            --set global.platform=gcp \
+            --set global.dnsRecord=test-gcp.qualytics.io \
+            --set dataplane.numVolumes=1 > /dev/null
+            
+          echo "  Testing Azure platform configuration..."
+          helm template test-release charts/qualytics \
+            --set global.platform=azure \
+            --set global.dnsRecord=test-azure.qualytics.io > /dev/null
+          
+          # Test authentication configurations
+          echo "  Testing AUTH0 authentication..."
+          helm template test-release charts/qualytics \
+            --set global.authType=AUTH0 \
+            --set secrets.auth0.auth0_domain=test.auth0.com \
+            --set secrets.auth0.auth0_audience=test-api > /dev/null
+            
+          echo "  Testing OIDC authentication..."
+          helm template test-release charts/qualytics \
+            --set global.authType=OIDC > /dev/null
+          
+          # Test node selector configurations
+          echo "  Testing node selectors..."
+          helm template test-release charts/qualytics \
+            --set appNodeSelector.appNodes=true \
+            --set driverNodeSelector.driverNodes=true \
+            --set executorNodeSelector.executorNodes=true > /dev/null
+          
+          # Test dataplane resource configurations
+          echo "  Testing dataplane resource configurations..."
+          helm template test-release charts/qualytics \
+            --set dataplane.driver.cores=4 \
+            --set dataplane.driver.memory=32000m \
+            --set dataplane.executor.cores=8 \
+            --set dataplane.executor.memory=64000m \
+            --set dataplane.dynamicAllocation.maxExecutors=20 > /dev/null
+          
+          # Test volume configurations
+          echo "  Testing volume configurations..."
+          helm template test-release charts/qualytics \
+            --set dataplane.numVolumes=3 \
+            --set global.platform=aws > /dev/null
+          
+          # Test storage configurations
+          echo "  Testing storage configurations..."
+          helm template test-release charts/qualytics \
+            --set postgres.enabled=true \
+            --set postgres.pvc.storageSize=100Gi \
+            --set postgres.pvc.backupStorageSize=50Gi \
+            --set rabbitmq.pvc.storageSize=10Gi > /dev/null
+          
+          # Test SMTP configurations
+          echo "  Testing SMTP configurations..."
+          helm template test-release charts/qualytics \
+            --set controlplane.smtp.enabled=true \
+            --set controlplane.smtp.server=mail.company.com \
+            --set controlplane.smtp.sender=test@company.com \
+            --set controlplane.smtp.port=587 > /dev/null
+          
+          # Test ingress configurations
+          echo "  Testing ingress configurations..."
+          helm template test-release charts/qualytics \
+            --set ingress.enabled=true \
+            --set ingress.cors=true \
+            --set global.dnsRecord=test.qualytics.io > /dev/null
+          
+          # Test minimal configuration (customer might disable components)
+          echo "  Testing minimal configuration..."
+          helm template test-release charts/qualytics \
+            --set dataplane.numVolumes=-1 \
+            --set controlplane.smtp.enabled=false \
+            --set postgres.enabled=false > /dev/null
+          
+          echo "All template.values.yaml configuration tests passed! ✅"
+
+  # Integration testing with Kind
+  integration-test:
+    runs-on: ubuntu-latest
+    needs: lint-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.19.0
+
+      - name: Set up Kind
+        uses: helm/kind-action@v1.8.0
+        with:
+          cluster_name: test-cluster
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add spark-operator https://kubeflow.github.io/spark-operator
+          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+          helm repo add jetstack https://charts.jetstack.io
+          helm repo update
+
+      - name: Build dependencies
+        run: helm dependency build charts/qualytics
+
+      - name: Install Spark Operator CRDs
+        run: |
+          # Get spark-operator version from Chart.yaml
+          SPARK_OPERATOR_VERSION=$(yq '.dependencies[] | select(.name == "spark-operator") | .version' charts/qualytics/Chart.yaml 2>/dev/null || \
+                                  grep -A 1 'name: spark-operator' charts/qualytics/Chart.yaml | grep 'version:' | awk '{print $2}')
+          echo "Installing Spark Operator CRDs version: $SPARK_OPERATOR_VERSION"
+          
+          # Apply Spark Operator CRDs with server-side apply
+          kubectl apply --server-side=true -f https://raw.githubusercontent.com/kubeflow/spark-operator/v${SPARK_OPERATOR_VERSION}/charts/spark-operator-chart/crds/sparkoperator.k8s.io_sparkapplications.yaml
+          kubectl apply --server-side=true -f https://raw.githubusercontent.com/kubeflow/spark-operator/v${SPARK_OPERATOR_VERSION}/charts/spark-operator-chart/crds/sparkoperator.k8s.io_scheduledsparkapplications.yaml
+
+      - name: Test installation (dry-run)
+        run: |
+          kubectl create namespace qualytics-test || true
+          helm install test-release charts/qualytics \
+            --namespace qualytics-test \
+            --dry-run \
+            --debug

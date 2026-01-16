@@ -3,43 +3,175 @@
 ######------------------------------------------------------------
 
 #--------------------------------------------------------------------------------
+# Dependencies
+#--------------------------------------------------------------------------------
+sparkoperator:
+  enabled: true
+  prometheus:
+    metrics:
+      enable: false
+  controller:
+    nodeSelector: {}
+    #   appNodes: "true"
+    # tolerations:
+    #   - key: appNodes
+    #     operator: Equal
+    #     value: "true"
+    #     effect: NoSchedule
+  webhook:
+    enable: true
+    timeoutSeconds: 30
+    nodeSelector: {}
+    #   appNodes: "true"
+    # tolerations:
+    #   - key: appNodes
+    #     operator: Equal
+    #     value: "true"
+    #     effect: NoSchedule
+  spark:
+    jobNamespaces:
+    - "qualytics" # Set to qualytics target namespace
+    serviceAccount:
+      name: "qualytics-spark"
+  hook:
+    upgradeCrd: false
+
+nginx:
+  enabled: false
+  controller:
+    nodeSelector: {}
+    #   appNodes: "true"
+    # tolerations:
+    #   - key: appNodes
+    #     operator: Equal
+    #     value: "true"
+    #     effect: NoSchedule
+    admissionWebhooks:
+      enabled: true
+      timeoutSeconds: 30
+    config:
+      annotations-risk-level: "Critical"
+      allow-snippet-annotations: "true"
+      hsts-max-age: "31536000"
+    service:
+      type: LoadBalancer
+      externalTrafficPolicy: Local
+      # annotations:
+      #   service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+      #   service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: 'true'
+      #   service.beta.kubernetes.io/aws-load-balancer-type: nlb
+
+certmanager:
+  enabled: false
+  installCRDs: true
+  config:
+    featureGates:
+      ACMEHTTP01IngressPathTypeExact: false
+  nodeSelector: {}
+  #   appNodes: "true"
+  # tolerations:
+  #   - key: appNodes
+  #     operator: Equal
+  #     value: "true"
+  #     effect: NoSchedule
+
+#--------------------------------------------------------------------------------
+# App Ingresses
+#--------------------------------------------------------------------------------
+ingress:
+  enabled: false
+  cors: false
+  maxRequestsPerSecondPerIP: 10
+
+#--------------------------------------------------------------------------------
 # Global values
 #--------------------------------------------------------------------------------
 
 # Keep this for dns records and other specifics that are used across the entire app
 global:
   platform: "aws"
-  tenant: "changeme"
-  dnsRecord: "{{ .Values.global.tenant }}.qualytics.io"
+  deploymentMode: "kubernetes" # kubernetes | databricks
+  dnsRecord: "changeme.qualytics.io"
+  authType: "AUTH0"
   imageUrls:
-    firewallImageUrl: "artifactory.qualytics.io:443/docker/firewall-prod"
-    hubImageUrl: "artifactory.qualytics.io:443/docker/hub-prod"
-    frontendImageUrl: "artifactory.qualytics.io:443/docker/frontend-prod"
+    controlplaneImageUrl: "qualyticsai/controlplane"
+    dataplaneImageUrl: "qualyticsai/dataplane"
+    frontendImageUrl: "qualyticsai/frontend"
 
-# App image tags
-firewallImage:
+# Platform image tags
+controlplaneImage:
   image:
-    firewallImageTag: "20230719-38ed195"
-hubImage:
+    controlplaneImageTag: "20260114-2cd028d"
+dataplaneImage:
   image:
-    hubImageTag: "20230719-ec5fa9c"
+    dataplaneImageTag: "20260114-7b57ee7"
 frontendImage:
   image:
-    frontendImageTag: "20230719-4086820"
+    frontendImageTag: "20260114-9243c66"
 
-# The following secrets are required
+# Storage classes
+storageClass:
+  create: false
+  name: ""
+
+# Node scheduling
+appNodeSelector: {}
+#   appNodes: "true"
+driverNodeSelector: {}
+#   driverNodes: "true"
+executorNodeSelector: {}
+#   executorNodes: "true"
+
+tolerations:
+  appNodeTolerations: []
+  #     - key: appNodes
+  #       operator: Equal
+  #       value: "true"
+  #       effect: NoSchedule
+  driverNodeTolerations: []
+  #     - key: driverNodes
+  #       operator: Equal
+  #       value: "true"
+  #       effect: NoSchedule
+  executorNodeTolerations: []
+  #     - key: executorNodes
+  #       operator: Equal
+  #       value: "true"
+  #       effect: NoSchedule
+
+#--------------------------------------------------------------------------------
+# Secrets
+#--------------------------------------------------------------------------------
 secrets:
-  auth0:
+  auth0: # required for authType AUTH0 (the default)
     auth0_domain: auth.qualytics.io
     auth0_audience: changeme-api
     auth0_organization: org_changeme
     auth0_spa_client_id: spa_client_id
-    auth0_client_id: m2m_client_id
-    auth0_client_secret: m2m_client_secret
-    auth0_user_client_id: m2m_user_client_id
-    auth0_user_client_secret: m2m_user_client_secret
+  oidc: # required for authType OIDC
+    oidc_scopes: oidc_scopes
+    oidc_authorization_endpoint: oidc_authorization_endpoint
+    oidc_token_endpoint: oidc_token_endpoint
+    oidc_userinfo_endpoint: oidc_userinfo_endpoint
+    oidc_client_id: oidc_client_id
+    oidc_client_secret: oidc_client_secret
+    oidc_user_id_key: oidc_user_id_key
+    oidc_user_email_key: oidc_user_email_key
+    oidc_user_name_key: oidc_user_name_key
+    oidc_user_fname_key: oidc_user_fname_key
+    oidc_user_lname_key: oidc_user_lname_key
+    oidc_user_picture_key: oidc_user_picture_key
+    oidc_user_provider_key: oidc_user_provider_key
+    oidc_allow_insecure_transport: false
+    # oidc_signer_pem_url: "https://www.digicert.com/CACerts/DigiCertGlobalRootG2.crt.pem"
+  auth:
+    jwt_signing_secret: ChangeMe!
   postgres:
-    connection_url: postgres:postgres@postgres:5432/surveillence_hub
+    host: postgres
+    port: 5432
+    database: surveillance_hub
+    username: postgres
+    password: postgres
     secrets_passphrase: ChangeMe!
   smtp:
     smtp_sender_user: smtp_user
@@ -47,53 +179,75 @@ secrets:
   rabbitmq:
     rabbitmq_password: ChangeMe!
 
+
 #--------------------------------------------------------------------------------
-# Firewall configuration
+# Dataplane configuration
 #--------------------------------------------------------------------------------
-firewall:
-  sparkVersion: "3.4.1"
-  eventLog: "false"
-  useCache: "true"
-  threadPoolParallelism: -1
-  maxExecutors: 20
-  numCoresPerExecutor: 7
-  freeDiskPerExecutor: 300
+dataplane:
+  enabled: true
+  sparkVersion: "4.0.1"
+  eventLog: false
+  numVolumes: -1
+  parallelismScaleFactor: -1
+  maxParallelSyncRequests: 3
+  memoryOverheadFactor: 0.1
+  libpostalDataPath: "/opt/libpostal"
+  extraPackages:
+    - "com.oracle.database.jdbc:ojdbc11:21.19.0.0"
+    - "com.teradata.jdbc:terajdbc:20.00.00.49"
+    - "com.ibm.db2:jcc:12.1.2.0"
   driver:
     cores: 7
-    coreLimit: "7500m"
-    memory: "56000m"
+    memory: "55000m"
   dynamicAllocation:
     enabled: true
-    initialExecutors: 0
-    minExecutors: 0
-    maxExecutors: 20
+    initialExecutors: 1
+    minExecutors: 1
+    maxExecutors: 12
   executor:
     ## Note that if dynamic allocation is enabled, the number of executors to request initially is set to the biggest
     # of .spec.dynamicAllocation.initialExecutors and .spec.executor.instances if both are set.
     instances: 1
     cores: 7
-    coreLimit: "7500m"
-    memory: "56000m"
+    memory: "55000m"
+  kerberos:
+    enabled: false
+    krb5: ""
+    keytab: ""
+    principal: ""
 
 #--------------------------------------------------------------------------------
-# Hub configuration
+# Controlplane configuration
 #--------------------------------------------------------------------------------
-hub:
-  replicas: 3
+controlplane:
+  replicas: 6
   ingress:
     path: "/api/?(.*)"
     servicePort: "8000"
   resources:
-    memory: "4Gi"
-    cpu: "1000m"
+    memory: "1Gi"
+    cpu: "500m"
+  smtp:
+    enabled: true
+    server: "email-smtp.us-east-1.amazonaws.com"
+    sender: "no-reply@qualytics.co"
+    port: "465"
+  auth:
+    # Enable email-based IDP migration
+    migrateIdpByEmail: ""
+    # SCIM username prefix
+    scimUsernamePrefix: ""
+  # Controls certificate validation for all requests, httpx, and smtp_ssl sessions
+  egress:
+    verifyTLSCertificates: true
+  # Enable Model Context Protocol
+  mcp:
+    enabled: false
 
-hubCmd:
+controlplaneCmd:
   resources:
-    memory: "256Mi"
-    cpu: "300m"
-
-hubUserKeys:
-  enabled: true
+    memory: "6Gi"
+    cpu: "500m"
 
 #--------------------------------------------------------------------------------
 # Frontend configuration
@@ -110,53 +264,44 @@ frontend:
 #--------------------------------------------------------------------------------
 # Postgres
 #--------------------------------------------------------------------------------
-# Set values for cluster install of Postgres
 postgres:
   enabled: true
   pvc:
     storageSize: "100Gi"
-    backupVolumeStorageSize: "50Gi"
+    backupStorageSize: "50Gi"
   image:
-    version: "14"
+    imageUrl: "postgres"
+    imageTag: "17"
+  # Use this image for auto upgrade
+  # image:
+  #   imageUrl: "pgautoupgrade/pgautoupgrade"
+  #   imageTag: "17-bookworm"
   resources:
-    memory: "14Gi"
-    cpu: "3000m"
+    memory: "10Gi"
+    cpu: "2000m"
+  tls:
+    enabled: false  # Requires certmanager.enabled to be true
 
 #--------------------------------------------------------------------------------
-# Ingress Nginx & Cert-manager
+# RabbitMQ
 #--------------------------------------------------------------------------------
-ingress:
-  enabled: true
-  certificates:
-    registeredEmail: "devops@qualytics.co"
+rabbitmq:
+  pvc:
+    storageSize: "10Gi"
+  image:
+    imageUrl: "rabbitmq"
+    imageTag: "4.0-management"
+  resources:
+    memory: "1Gi"
+    cpu: "500m"
+  tls:
+    enabled: false  # Requires certmanager.enabled to be true
+  enableInbound: false  # When true, opens AMQP-TLS on port 30671 into the cluster
 
 #--------------------------------------------------------------------------------
-# Dependencies
+# Busybox
 #--------------------------------------------------------------------------------
-spark-operator:
-  webhook:
-    enable: true
-    port: 443
-  nodeSelector:
-    appNodes: "true"
-
-ingress-nginx:
-  controller:
-    nodeSelector:
-      appNodes: "true"
-    admissionWebhooks:
-      enabled: true
-      timeoutSeconds: 30
-    service:
-      type: LoadBalancer
-      externalTrafficPolicy: Local
-      # enable this for aws
-      # annotations:
-      #   service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
-      #   service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: 'true'
-      #   service.beta.kubernetes.io/aws-load-balancer-type: nlb
-
-cert-manager:
-  installCRDs: "true"
-  nodeSelector:
-    appNodes: "true"
+busybox:
+  image:
+    imageUrl: "busybox"
+    imageTag: "latest"
