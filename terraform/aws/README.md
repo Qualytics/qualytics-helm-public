@@ -27,8 +27,8 @@ This Terraform configuration creates an Amazon EKS cluster configured for deploy
 1. **Clone the repository and navigate to the AWS directory:**
 
    ```bash
-   git clone https://github.com/qualytics/qualytics-helm-public.git
-   cd qualytics-helm-public/terraform/aws
+   git clone https://github.com/qualytics/qualytics-self-hosted.git
+   cd qualytics-self-hosted/terraform/aws
    ```
 
 2. **Create your configuration file:**
@@ -72,7 +72,7 @@ This Terraform configuration creates an Amazon EKS cluster configured for deploy
 7. **Deploy Qualytics using Helm:**
 
    ```bash
-   helm repo add qualytics https://qualytics.github.io/qualytics-helm-public
+   helm repo add qualytics https://qualytics.github.io/qualytics-self-hosted
    helm repo update
    helm upgrade --install qualytics qualytics/qualytics \
      --namespace qualytics \

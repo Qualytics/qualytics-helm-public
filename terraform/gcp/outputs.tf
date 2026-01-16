@@ -116,7 +116,7 @@ output "next_steps" {
          --docker-password=<token-from-qualytics>
 
     4. Deploy Qualytics using Helm:
-       helm repo add qualytics https://qualytics.github.io/qualytics-helm-public
+       helm repo add qualytics https://qualytics.github.io/qualytics-self-hosted
        helm repo update
        helm upgrade --install qualytics qualytics/qualytics \
          --namespace qualytics \
@@ -124,7 +124,7 @@ output "next_steps" {
          --timeout=20m
 
     For more information, visit:
-    https://github.com/qualytics/qualytics-helm-public
+    https://github.com/qualytics/qualytics-self-hosted
 
   EOT
 }

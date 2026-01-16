@@ -16,7 +16,7 @@ Chart version: **2025.10.17** (application type)
 ## Directory Structure
 
 ```
-qualytics-helm-public/
+qualytics-self-hosted/
 ├── README.md                           # User-facing deployment documentation
 ├── template.values.yaml                # Simplified configuration template (128 lines)
 ├── deployment_arch_diagram.jpg         # Architecture diagram
@@ -63,7 +63,7 @@ qualytics-helm-public/
 - **Package chart**: `helm package charts/qualytics`
 
 ### Installation & Updates
-- **Add repository**: `helm repo add qualytics https://qualytics.github.io/qualytics-helm-public`
+- **Add repository**: `helm repo add qualytics https://qualytics.github.io/qualytics-self-hosted`
 - **Install chart**: `helm upgrade --install qualytics qualytics/qualytics --namespace qualytics --create-namespace -f values.yaml --timeout=20m`
 - **Upgrade release**: `helm upgrade qualytics qualytics/qualytics --namespace qualytics -f values.yaml --timeout=20m`
 - **Uninstall release**: `helm uninstall qualytics --namespace qualytics`
@@ -466,7 +466,7 @@ helm unittest -v charts/qualytics
 
 3. **Deploy Qualytics**:
    ```bash
-   helm repo add qualytics https://qualytics.github.io/qualytics-helm-public
+   helm repo add qualytics https://qualytics.github.io/qualytics-self-hosted
    helm repo update
    helm upgrade --install qualytics qualytics/qualytics \
      --namespace qualytics \

@@ -28,8 +28,8 @@ This Terraform configuration creates a Google Kubernetes Engine (GKE) cluster co
 1. **Clone the repository and navigate to the GCP directory:**
 
    ```bash
-   git clone https://github.com/qualytics/qualytics-helm-public.git
-   cd qualytics-helm-public/terraform/gcp
+   git clone https://github.com/qualytics/qualytics-self-hosted.git
+   cd qualytics-self-hosted/terraform/gcp
    ```
 
 2. **Authenticate with GCP:**
@@ -80,7 +80,7 @@ This Terraform configuration creates a Google Kubernetes Engine (GKE) cluster co
 8. **Deploy Qualytics using Helm:**
 
    ```bash
-   helm repo add qualytics https://qualytics.github.io/qualytics-helm-public
+   helm repo add qualytics https://qualytics.github.io/qualytics-self-hosted
    helm repo update
    helm upgrade --install qualytics qualytics/qualytics \
      --namespace qualytics \

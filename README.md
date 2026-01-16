@@ -130,7 +130,7 @@ Add the Qualytics Helm repository and deploy the platform:
 
 ```bash
 # Add the Qualytics Helm repository
-helm repo add qualytics https://qualytics.github.io/qualytics-helm-public
+helm repo add qualytics https://qualytics.github.io/qualytics-self-hosted
 helm repo update
 
 # Deploy Qualytics

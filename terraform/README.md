@@ -105,7 +105,7 @@ After creating the cluster:
    ```
 3. Deploy Qualytics using Helm:
    ```bash
-   helm repo add qualytics https://qualytics.github.io/qualytics-helm-public
+   helm repo add qualytics https://qualytics.github.io/qualytics-self-hosted
    helm repo update
    helm upgrade --install qualytics qualytics/qualytics \
      --namespace qualytics \
