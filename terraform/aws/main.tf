@@ -68,6 +68,18 @@ locals {
     Cluster = local.name
   })
 
+  # Detect Graviton (ARM) instances - matches m8g, r8g, r8gd, c7g, c7gd, etc.
+  # Pattern: letter(s) + number + 'g' indicates ARM/Graviton processor
+  app_is_graviton = anytrue([
+    for inst in var.app_node_instance_types : can(regex("^[a-z]+[0-9]+g", inst))
+  ])
+  driver_is_graviton = anytrue([
+    for inst in var.driver_node_instance_types : can(regex("^[a-z]+[0-9]+g", inst))
+  ])
+  exec_is_graviton = anytrue([
+    for inst in var.executor_node_instance_types : can(regex("^[a-z]+[0-9]+g", inst))
+  ])
+
   # NVMe setup script for executor nodes
   nvme_setup_script = <<-EOT
     #!/bin/bash
@@ -180,6 +192,7 @@ module "eks" {
 
       instance_types = var.app_node_instance_types
       capacity_type  = "ON_DEMAND"
+      ami_type       = local.app_is_graviton ? "AL2023_ARM_64_STANDARD" : "AL2023_x86_64_STANDARD"
 
       min_size     = var.app_node_min_size
       max_size     = var.app_node_max_size
@@ -210,6 +223,7 @@ module "eks" {
 
       instance_types = var.driver_node_instance_types
       capacity_type  = "ON_DEMAND"
+      ami_type       = local.driver_is_graviton ? "AL2023_ARM_64_STANDARD" : "AL2023_x86_64_STANDARD"
 
       min_size     = var.driver_node_min_size
       max_size     = var.driver_node_max_size
@@ -240,6 +254,7 @@ module "eks" {
 
       instance_types = var.executor_node_instance_types
       capacity_type  = var.executor_capacity_type
+      ami_type       = local.exec_is_graviton ? "AL2023_ARM_64_STANDARD" : "AL2023_x86_64_STANDARD"
 
       min_size     = var.executor_node_min_size
       max_size     = var.executor_node_max_size
