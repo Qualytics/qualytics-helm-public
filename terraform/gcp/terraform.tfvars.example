@@ -9,8 +9,17 @@
 # General Configuration
 #-------------------------------------------------------------------------------
 
-# GCP project ID (REQUIRED)
-project_id = "your-gcp-project-id"
+# Tenant name for project naming (REQUIRED)
+tenant_name = "your-tenant-name"
+
+# GCP project ID (leave empty to auto-create project)
+project_id = ""
+
+# GCP billing account ID (REQUIRED for project creation)
+# billing_account = ""
+
+# GCP folder ID (REQUIRED for project creation)
+# folder_id = ""
 
 # GCP region for the GKE cluster
 region = "us-central1"

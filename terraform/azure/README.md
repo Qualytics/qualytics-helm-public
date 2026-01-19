@@ -66,7 +66,7 @@ This Terraform template creates an Azure Kubernetes Service (AKS) cluster config
 |----------|---------|-------------|
 | `cluster_name` | `qualytics` | Name of the AKS cluster |
 | `location` | `eastus` | Azure region |
-| `kubernetes_version` | `1.31` | Kubernetes version |
+| `kubernetes_version` | `1.33` | Kubernetes version |
 | `executor_use_spot` | `true` | Use Spot instances for executors |
 | `enable_node_taints` | `true` | Enable node taints for workload isolation |
 
