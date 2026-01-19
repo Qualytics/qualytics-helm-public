@@ -104,7 +104,7 @@ controlplaneImage:
     controlplaneImageTag: "20260114-2cd028d"
 dataplaneImage:
   image:
-    dataplaneImageTag: "20260114-7b57ee7"
+    dataplaneImageTag: "20260119-698c83a"
 frontendImage:
   image:
     frontendImageTag: "20260114-9243c66"
