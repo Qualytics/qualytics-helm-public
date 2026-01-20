@@ -6,8 +6,24 @@
 # General Configuration
 #-------------------------------------------------------------------------------
 
+variable "tenant_name" {
+  description = "Tenant name used for project naming"
+  type        = string
+}
+
 variable "project_id" {
-  description = "GCP project ID where resources will be created"
+  description = "GCP project ID where resources will be created (auto-generated if not provided)"
+  type        = string
+  default     = ""
+}
+
+variable "billing_account" {
+  description = "GCP billing account ID for project creation"
+  type        = string
+}
+
+variable "folder_id" {
+  description = "GCP folder ID for project creation"
   type        = string
 }
 

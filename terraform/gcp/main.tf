@@ -14,16 +14,27 @@ terraform {
       source  = "hashicorp/google"
       version = "~> 6.0"
     }
+    google-beta = {
+      source  = "hashicorp/google-beta"
+      version = "~> 6.0"
+    }
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = "~> 2.23"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.6"
     }
   }
 }
 
 provider "google" {
-  project = var.project_id
-  region  = var.region
+  region = var.region
+}
+
+provider "google-beta" {
+  region = var.region
 }
 
 provider "kubernetes" {
@@ -33,14 +44,34 @@ provider "kubernetes" {
 }
 
 ################################################################################
+# Project Creation
+################################################################################
+
+resource "random_id" "project_suffix" {
+  count       = var.project_id == "" ? 1 : 0
+  byte_length = 4
+}
+
+resource "google_project" "project" {
+  count           = var.project_id == "" ? 1 : 0
+  name            = var.tenant_name
+  project_id      = "qualytics-${var.tenant_name}-${random_id.project_suffix[0].dec}"
+  folder_id       = var.folder_id
+  billing_account = var.billing_account
+  deletion_policy = "DELETE"
+}
+
+################################################################################
 # Data Sources
 ################################################################################
 
 data "google_client_config" "default" {}
 
 data "google_compute_zones" "available" {
-  project = var.project_id
+  project = local.project_id
   region  = var.region
+
+  depends_on = [google_project_service.required_apis]
 }
 
 ################################################################################
@@ -48,8 +79,9 @@ data "google_compute_zones" "available" {
 ################################################################################
 
 locals {
-  name = var.cluster_name
-  zone = data.google_compute_zones.available.names[0]
+  name       = var.cluster_name
+  zone       = data.google_compute_zones.available.names[0]
+  project_id = var.project_id != "" ? var.project_id : google_project.project[0].project_id
 
   tags = merge(var.default_labels, {
     cluster = local.name
@@ -67,10 +99,12 @@ resource "google_project_service" "required_apis" {
     "servicenetworking.googleapis.com"
   ])
 
-  project = var.project_id
+  project = local.project_id
   service = each.value
 
   disable_on_destroy = false
+
+  depends_on = [google_project.project]
 }
 
 ################################################################################
@@ -81,7 +115,7 @@ module "vpc" {
   source  = "terraform-google-modules/network/google"
   version = "~> 12.0"
 
-  project_id   = var.project_id
+  project_id   = local.project_id
   network_name = "${local.name}-vpc"
   routing_mode = "GLOBAL"
   description  = "VPC network for Qualytics GKE cluster"
@@ -122,7 +156,7 @@ module "cloud_nat" {
   source  = "terraform-google-modules/cloud-nat/google"
   version = "~> 5.3.0"
 
-  project_id = var.project_id
+  project_id = local.project_id
   region     = var.region
   router     = "${local.name}-router"
   name       = "${local.name}-nat"
@@ -141,7 +175,7 @@ module "gke" {
   source  = "terraform-google-modules/kubernetes-engine/google"
   version = "~> 38.1.0"
 
-  project_id        = var.project_id
+  project_id        = local.project_id
   name              = local.name
   region            = var.region
   network           = module.vpc.network_name

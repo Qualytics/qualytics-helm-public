@@ -26,7 +26,7 @@ variable "cluster_name" {
 variable "kubernetes_version" {
   description = "Kubernetes version for the AKS cluster"
   type        = string
-  default     = "1.31"
+  default     = "1.33"
 }
 
 variable "default_tags" {

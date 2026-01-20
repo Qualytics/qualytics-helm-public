@@ -19,7 +19,7 @@ location = "eastus"
 cluster_name = "qualytics"
 
 # Kubernetes version (1.30+ recommended)
-kubernetes_version = "1.31"
+kubernetes_version = "1.33"
 
 # Default tags applied to all resources
 default_tags = {
